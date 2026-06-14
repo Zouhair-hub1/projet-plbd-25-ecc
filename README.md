@@ -75,20 +75,18 @@ Une fois connecté, le robot lance son fil conducteur principal dans un thread s
 * **Troisième segment rectiligne :** Le robot avance de 70 cm pour terminer sa boucle.
 
 ### 👁️ Phase 3 : L'Interruption Prioritaire (Détection d'une mauvaise herbe)
+
 Pendant que le robot avance sur les segments rectilignes de la Phase 2, une boucle d'écoute infinie surveille en continu le retour des analyses du modèle YOLOv8 envoyé par le PC. Si le PC renvoie des coordonnées valides (la plante est détectée), la démarche du robot change instantanément :
-[Robot en mouvement]
-│
-▼ Une mauvaise herbe est détectée !
-[Arrêt immédiat des moteurs] (move.motorStop())
-│
-▼ Lancement de la boucle IBVS (Thread parallèle)
-[Correction fine du bras] (Ajustement itératif des servos 1, 2 et 3)
-│
-▼ Convergence (Erreur < 30 pixels)
-[Séquence d'arrachage physique] (Ouverture/Fermeture des pinces + Outils)
-│
-▼ Réactivation de la détection
-[Reprise du trajet initial] (Les moteurs redémarrent là où ils s'étaient arrêtés)
+
+* 🚜 **[Robot en mouvement]**
+  * 🔽 *Une mauvaise herbe est détectée !*
+  * 🛑 **[Arrêt immédiat des moteurs]** → `move.motorStop()`
+  * 🔄 **[Lancement de la boucle IBVS]** *(Thread parallèle)*
+  * 🎯 **[Correction fine du bras]** → Ajustement itératif des servos 1, 2 et 3
+  * 📉 **[Convergence]** → Erreur < 30 pixels
+  * 🦾 **[Séquence d'arrachage physique]** → Ouverture/Fermeture des pinces + Outils
+  * 👁️ **[Réactivation de la détection]**
+  * 🔄 **[Reprise du trajet initial]** → Les moteurs redémarrent là où ils s'étaient arrêtés.
 ### 🛠️ Phase 4 : L'action mécanique d'élimination
 Dès que l'erreur visuelle passe sous le seuil de tolérance requis ($SEUIL_X = 30$, $SEUIL_Y = 30$), la fonction `arracher()` prend le relais :
 * **Alerte sonore :** Le buzzer émet un signal (note C4 pendant 1 seconde) pour notifier l'action.
@@ -184,3 +182,5 @@ Aperçu dynamique du comportement cinématique et du suivi de trajectoire du rob
 | **Indicateur Sonore** | TonalBuzzer connecté au port GPIO 18 |
 | **Station de Calcul** | PC Windows distant — Inférence YOLOv8 + Serveur Flask |
 | **Réseau de communication** | Protocole WiFi TCP/IP sur le Port Unique `9999` |
+
+## 👥 Équipe — PLBD_25_
