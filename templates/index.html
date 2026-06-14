@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌿 Robot Détection Mauvaises Herbes</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #080e1a; color: #fff; font-family: 'Segoe UI', sans-serif; }
+
+        header {
+            background: #0d1a2d;
+            padding: 15px 30px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border-bottom: 2px solid #1a8cff;
+        }
+        header h1 { font-size: 1.4em; color: #1a8cff; }
+        .status {
+            margin-left: auto;
+            background: #1a8cff;
+            color: #000;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+
+        .container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .left-col { display: flex; flex-direction: column; gap: 20px; }
+        .right-col {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-height: 90vh;
+        }
+
+        .live-section { display: flex; flex-direction: column; gap: 10px; }
+        .live-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9em;
+            color: #aaa;
+        }
+        .live-dot {
+            width: 10px; height: 10px;
+            background: red;
+            border-radius: 50%;
+            animation: blink 1s infinite;
+        }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+        .stream-box {
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            border: 2px solid #0d2a4a;
+            height: 320px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .stream-box img { width: 100%; height: 100%; object-fit: contain; }
+
+        .graph-box {
+            background: #0d1a2d;
+            border: 1px solid #1a8cff;
+            border-radius: 12px;
+            padding: 15px;
+        }
+        .graph-box h2 {
+            color: #1a8cff;
+            font-size: 0.95em;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #1a8cff;
+        }
+        .graph-box canvas { height: 220px !important; }
+        .stats-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .stat-badge {
+            background: #071530;
+            border: 1px solid #1a8cff;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            color: #1a8cff;
+        }
+
+        .detections-section {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            overflow: hidden;
+        }
+        .detections-section h2 {
+            color: #1a8cff;
+            font-size: 1em;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #1a8cff;
+        }
+        .detections-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 85vh;
+        }
+        .detection-card {
+            background: #0d1a2d;
+            border: 1px solid #1a8cff;
+            border-radius: 10px;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            animation: fadeIn 0.5s;
+        }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(-10px)} to{opacity:1;transform:translateY(0)} }
+        .detection-card img {
+            width: 100%;
+            border-radius: 6px;
+            max-height: 130px;
+            object-fit: cover;
+        }
+        .detection-time { font-size: 0.75em; color: #aaa; }
+        .coords { display: flex; gap: 8px; flex-wrap: wrap; }
+        .coord-badge {
+            background: #071530;
+            border: 1px solid #1a8cff;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            color: #1a8cff;
+        }
+        .conseil {
+            background: #07101f;
+            border-left: 3px solid #f39c12;
+            padding: 8px 10px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            color: #f39c12;
+        }
+        .detections-list::-webkit-scrollbar { width: 4px; }
+        .detections-list::-webkit-scrollbar-thumb { background: #1a8cff; border-radius: 4px; }
+
+        @media (max-width: 768px) {
+            .container { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <span style="font-size:1.5em">🌿</span>
+    <h1>Robot Détection — Mauvaises Herbes</h1>
+    <div class="status">● EN LIGNE</div>
+</header>
+
+<div class="container">
+    <div class="left-col">
+
+        <div class="live-section">
+            <div class="live-label">
+                <div class="live-dot"></div>
+                <span>LIVE — Caméra Robot</span>
+            </div>
+            <div class="stream-box">
+                <img src="/video_feed" alt="Live Robot">
+            </div>
+        </div>
+
+        <div class="graph-box">
+            <h2>🔴 Carte des Mauvaises Herbes (cm)</h2>
+            <canvas id="mapChart"></canvas>
+            <div class="stats-row">
+                <span class="stat-badge" id="total-count">🌿 Total : 0</span>
+                <span class="stat-badge" id="last-coord">📍 Dernière : —</span>
+            </div>
+        </div>
+
+        <div class="graph-box">
+            <h2>🔵 Trajet du Robot (estimé à 10cm/s)</h2>
+            <canvas id="pathChart"></canvas>
+            <div class="stats-row">
+                <span class="stat-badge" id="distance-info">📏 Distance : 0 cm</span>
+                <span class="stat-badge" id="time-info">⏱️ Temps : 0s</span>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="right-col">
+        <div class="detections-section">
+            <h2>📸 Détections — Mauvaises Herbes</h2>
+            <div class="detections-list" id="detections-list">
+                <p style="color:#555; text-align:center; margin-top:30px">
+                    En attente de détections...
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ── Graphe Mauvaises Herbes ──
+const ctx1 = document.getElementById('mapChart').getContext('2d');
+const mapChart = new Chart(ctx1, {
+    type: 'scatter',
+    data: {
+        datasets: [{
+            label: 'Mauvaises Herbes',
+            data: [],
+            backgroundColor: 'rgba(255,0,0,0.8)',
+            borderColor: 'red',
+            pointRadius: 10,
+            pointHoverRadius: 14,
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#1a8cff' } },
+            tooltip: { callbacks: { label: c => `X:${c.parsed.x}cm Y:${c.parsed.y}cm` }}
+        },
+        scales: {
+            x: { title:{display:true,text:'X (cm)',color:'#1a8cff'}, min:0, max:23, ticks:{color:'#aaa'}, grid:{color:'#0d2a4a'} },
+            y: { title:{display:true,text:'Y (cm)',color:'#1a8cff'}, min:0, max:17, ticks:{color:'#aaa'}, grid:{color:'#0d2a4a'} }
+        }
+    }
+});
+
+// ── Graphe Trajet Robot ──
+const ctx2 = document.getElementById('pathChart').getContext('2d');
+const pathChart = new Chart(ctx2, {
+    type: 'scatter',
+    data: {
+        datasets: [
+            {
+                label: 'Trajet Robot',
+                data: [],
+                borderColor: 'rgba(0,150,255,1)',
+                backgroundColor: 'rgba(0,150,255,0.2)',
+                showLine: true,
+                pointRadius: 2,
+                borderWidth: 2,
+            },
+            {
+                label: 'Mauvaises Herbes',
+                data: [],
+                backgroundColor: 'rgba(255,0,0,0.8)',
+                borderColor: 'red',
+                pointRadius: 8,
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { labels: { color: '#1a8cff' } },
+            tooltip: { callbacks: { label: c => `X:${c.parsed.x}cm Y:${c.parsed.y}cm` }}
+        },
+        scales: {
+            x: { title:{display:true,text:'X (cm)',color:'#1a8cff'}, min:0, max:23, ticks:{color:'#aaa'}, grid:{color:'#0d2a4a'} },
+            y: { title:{display:true,text:'Y (cm)',color:'#1a8cff'}, min:0, ticks:{color:'#aaa'}, grid:{color:'#0d2a4a'} }
+        }
+    }
+});
+
+let allPoints = [];
+const startTime = Date.now();
+
+// ── Mise à jour détections ──
+function updateDetections() {
+    fetch('/detections')
+        .then(r => r.json())
+        .then(data => {
+            if (data.length === 0) return;
+            const list = document.getElementById('detections-list');
+            list.innerHTML = '';
+            data.forEach(d => {
+                const coordsHtml = d.coords.map(c =>
+                    `<span class="coord-badge">X:${c.x_cm}cm Y:${c.y_cm}cm (${c.conf}%)</span>`
+                ).join('');
+                list.innerHTML += `
+                    <div class="detection-card">
+                        <img src="/screenshot/${d.image}" alt="Detection ${d.id}">
+                        <div class="detection-time">🕐 ${d.timestamp} — Détection #${d.id}</div>
+                        <div class="coords">${coordsHtml}</div>
+                        <div class="conseil">💡 ${d.conseil}</div>
+                    </div>`;
+            });
+
+            allPoints = [];
+            data.forEach(d => {
+                d.coords.forEach(c => allPoints.push({ x: c.x_cm, y: c.y_cm }));
+            });
+
+            mapChart.data.datasets[0].data = allPoints;
+            mapChart.update();
+
+            document.getElementById('total-count').textContent = `🌿 Total : ${allPoints.length}`;
+            if (allPoints.length > 0) {
+                const last = allPoints[0];
+                document.getElementById('last-coord').textContent = `📍 X=${last.x}cm, Y=${last.y}cm`;
+            }
+        });
+}
+
+// ── Mise à jour trajet ──
+function updatePath() {
+    fetch('/robot_path')
+        .then(r => r.json())
+        .then(path => {
+            pathChart.data.datasets[0].data = path;
+            pathChart.data.datasets[1].data = allPoints;
+            pathChart.update();
+
+            const elapsed = Math.round((Date.now() - startTime) / 1000);
+            const dist = elapsed * 10;
+            document.getElementById('distance-info').textContent = `📏 Distance : ${dist} cm`;
+            document.getElementById('time-info').textContent = `⏱️ Temps : ${elapsed}s`;
+        });
+}
+
+setInterval(updateDetections, 2000);
+setInterval(updatePath, 1000);
+updateDetections();
+updatePath();
+</script>
+
+<div id="chat-btn" onclick="toggleChat()" style="position:fixed;bottom:24px;right:24px;width:52px;height:52px;background:#2563eb;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:1000;box-shadow:0 4px 12px rgba(37,99,235,0.4);">
+    <svg width="24" height="24" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+</div>
+
+<div id="chat-window" style="display:none;position:fixed;bottom:88px;right:24px;width:320px;background:#0f172a;border:1px solid #1e3a5f;border-radius:12px;z-index:1000;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.4);">
+    
+    <div style="background:linear-gradient(135deg,#1e3a5f,#1a1a4e);padding:14px 16px;display:flex;align-items:center;justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:32px;height:32px;background:linear-gradient(135deg,#22c55e,#16a34a);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;">&#127807;</div>
+            <div>
+                <p style="margin:0;font-size:13px;font-weight:600;color:#f0f9ff;">AgriBot Assistant</p>
+                <p style="margin:0;font-size:10px;color:#93c5fd;">&#9679; En ligne</p>
+            </div>
+        </div>
+        <span onclick="toggleChat()" style="cursor:pointer;color:#64748b;font-size:18px;line-height:1;">&#10005;</span>
+    </div>
+
+    <div id="chat-messages" style="height:280px;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:10px;">
+        <div style="background:#1e293b;border-radius:10px 10px 10px 2px;padding:10px 12px;font-size:12px;color:#e2e8f0;max-width:85%;line-height:1.5;">
+            Bonjour ! Je suis l'assistant AgriBot. Posez-moi vos questions sur le robot, la detection, le trajet...
+        </div>
+    </div>
+
+    <div style="padding:8px 12px;display:flex;gap:6px;flex-wrap:wrap;border-top:1px solid #1e293b;">
+        <span onclick="sendSuggestion('Comment fonctionne la detection ?')" style="cursor:pointer;background:#1e293b;border:1px solid #334155;color:#93c5fd;font-size:10px;padding:4px 8px;border-radius:12px;">Detection</span>
+        <span onclick="sendSuggestion('Parle moi du robot')" style="cursor:pointer;background:#1e293b;border:1px solid #334155;color:#93c5fd;font-size:10px;padding:4px 8px;border-radius:12px;">Robot</span>
+        <span onclick="sendSuggestion('Comment sont calcules les coordonnees ?')" style="cursor:pointer;background:#1e293b;border:1px solid #334155;color:#93c5fd;font-size:10px;padding:4px 8px;border-radius:12px;">Coordonnees</span>
+        <span onclick="sendSuggestion('Explique le trajet du robot')" style="cursor:pointer;background:#1e293b;border:1px solid #334155;color:#93c5fd;font-size:10px;padding:4px 8px;border-radius:12px;">Trajet</span>
+    </div>
+
+    <div style="padding:10px 12px;border-top:1px solid #1e293b;display:flex;gap:8px;">
+        <input id="chat-input" type="text" placeholder="Posez votre question..." onkeypress="if(event.key==='Enter')sendMsg()" style="flex:1;background:#1e293b;border:1px solid #334155;border-radius:8px;padding:8px 10px;font-size:12px;color:#f1f5f9;outline:none;">
+        <button onclick="sendMsg()" style="background:#2563eb;border:none;border-radius:8px;padding:8px 12px;cursor:pointer;color:white;font-size:12px;font-weight:600;">&#10148;</button>
+    </div>
+</div>
+
+<script>
+function toggleChat(){
+    const w=document.getElementById('chat-window');
+    w.style.display=w.style.display==='none'?'flex':'none';
+    w.style.flexDirection='column';
+    if(w.style.display==='flex'){
+        document.getElementById('chat-input').focus();
+    }
+}
+
+function addMessage(text, isUser){
+    const msgs=document.getElementById('chat-messages');
+    const div=document.createElement('div');
+    div.style.cssText=isUser
+        ?'background:#2563eb;border-radius:10px 10px 2px 10px;padding:10px 12px;font-size:12px;color:white;max-width:85%;align-self:flex-end;line-height:1.5;'
+        :'background:#1e293b;border-radius:10px 10px 10px 2px;padding:10px 12px;font-size:12px;color:#e2e8f0;max-width:85%;line-height:1.5;';
+    div.textContent=text;
+    msgs.appendChild(div);
+    msgs.scrollTop=msgs.scrollHeight;
+}
+
+function addTyping(){
+    const msgs=document.getElementById('chat-messages');
+    const div=document.createElement('div');
+    div.id='typing';
+    div.style.cssText='background:#1e293b;border-radius:10px 10px 10px 2px;padding:10px 12px;font-size:12px;color:#64748b;max-width:85%;line-height:1.5;';
+    div.textContent='...';
+    msgs.appendChild(div);
+    msgs.scrollTop=msgs.scrollHeight;
+}
+
+function removeTyping(){
+    const t=document.getElementById('typing');
+    if(t)t.remove();
+}
+
+function sendMsg(){
+    const input=document.getElementById('chat-input');
+    const msg=input.value.trim();
+    if(!msg)return;
+    input.value='';
+    addMessage(msg, true);
+    addTyping();
+    fetch('/chat',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({message:msg})
+    })
+    .then(r=>r.json())
+    .then(data=>{
+        removeTyping();
+        addMessage(data.reponse, false);
+    })
+    .catch(()=>{
+        removeTyping();
+        addMessage('Erreur de connexion. Reessayez.', false);
+    });
+}
+
+function sendSuggestion(text){
+    document.getElementById('chat-input').value=text;
+    sendMsg();
+}
+</script>
+
+</body>
+</html>

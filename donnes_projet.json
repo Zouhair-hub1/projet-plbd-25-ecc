@@ -1,0 +1,87 @@
+{
+  "projet": {
+    "nom": "Spark",
+    "nom_alternatif": "AgriBot",
+    "cadre": "Projet Learning by Doing (LBD)",
+    "etablissement": "École Centrale Casablanca",
+    "annee": "2026",
+    "cible_marche": "Agriculteurs possédant des champs de tomates",
+    "support_it": "zimad722@gmail.com"
+  },
+  "equipe_ibd_25": {
+    "membres": [
+      "Zouhair Imad",
+      "Illyas Dali",
+      "Fatima Ezzahra Melouki",
+      "Ines Dridi",
+      "Mohmed Chebabe"
+    ],
+    "encadrant": "Prof. Adil Ahidare"
+  },
+  "architecture_logicielle": {
+    "fichiers_principaux": {
+      "train.py": "Script d'entraînement du modèle de vision artificielle YOLOv8",
+      "robot_clients.py": "Code embarqué s'exécutant sur le Raspberry Pi du robot pour la gestion des moteurs, servomoteurs, capteurs et de la communication réseau",
+      "web_app_2.py": "Application serveur Flask centrale (PC) gérant l'interface web utilisateur, le streaming de la caméra, l'inférence IA en temps réel et le chatbot Gemini"
+    }
+  },
+  "specifications_techniques": {
+    "robot": {
+      "modele": "Adeept PiCar Pro V2",
+      "composants": ["Caméra USB", "Bras robotique à 4 servomoteurs", "Buzzer", "Roues directrices", "Moteurs DC"],
+      "vitesse_croisiere": "Paramètre réglé à 5",
+      "hauteur_fixation_camera_cm": 18.0
+    },
+    "ia_et_detection": {
+      "modele_yolov8": "YOLOv8 Nano (yolov8n.pt)",
+      "parametres_entrainement": {
+        "epochs": 50,
+        "batch_size": 8,
+        "resolution_image": 640,
+        "peripherique": "CPU"
+      },
+      "dataset_source": "Roboflow",
+      "classes_mauvaises_herbes": [
+        {"nom_anglais": "Field Bindweed", "nom_francais": "Liseron des champs"},
+        {"nom_anglais": "Common Lambsquarters", "nom_francais": "Chénopode blanc"}
+      ],
+      "seuil_confiance_detection": "50% (conf=0.5)"
+    },
+    "vision_et_coordonnees": {
+      "dimensions_flux_pixels": {"largeur": 640, "hauteur": 480},
+      "dimensions_reelles_cm": {"largeur": 23.0, "hauteur": 17.0},
+      "formule_x_cm": "(pixel_x / 640) * 23.0",
+      "formule_y_cm": "(pixel_y / 480) * 17.0",
+      "formule_hauteur_herbe_cm": "(hauteur_box_pixels / 480) * 17.0",
+      "strategie_selection_cible": "Sélection automatique de la bounding box la plus proche du centre de l'image (CX=320, CY=240) pour concentrer l'effort d'arrachage"
+    },
+    "asservissement_visuel_ibvs": {
+      "principe": "Boucle d'Asservissement Visuel Basé sur l'Image (Image-Based Visual Servoing). Ajustement proportionnel des angles des servos pour aligner le centre de l'herbe avec le centre de l'image caméra.",
+      "configuration_servos": {
+        "servo_1": "Axe horizontal (Gauche/Droite), limites: 40° à 180°, travail: 145°, gain proportionnel: 0.08",
+        "servo_2": "Axe vertical (Haut/Bas), limites: 90° à 170°, travail: 130°, gain proportionnel: 0.10",
+        "servo_3": "Axe profondeur (Aide à l'approche), limites: 40° à 140°, travail: 90°, gain proportionnel: 0.04",
+        "servo_4": "Pince / Dents d'arrachage, limites: Ouverture à 130° et fermeture/serrage à 80°"
+      },
+      "criteres_boucle": {
+        "max_iterations": 15,
+        "seuil_convergence_pixels": {"seuil_x": 30, "seuil_y": 30},
+        "temporisation_stabilisation_sevos": "0.6 seconde à chaque itération"
+      }
+    },
+    "navigation_et_trajet": {
+      "segments": [
+        {"action": "Avancer en ligne droite", "valeur_cm": 75},
+        {"action": "Tourner à gauche", "valeur": "95 degrés (Roues braquées à 45° pendant 19 secondes)"},
+        {"action": "Avancer en ligne droite", "valeur_cm": 60},
+        {"action": "Tourner à gauche", "valeur": "95 degrés (Roues braquées à 45° pendant 19 secondes)"},
+        {"action": "Avancer en ligne droite", "valeur_cm": 70}
+      ],
+      "fin_de_mission": "Retour à la position initiale et extinction des switches"
+    },
+    "comportement_systeme": {
+      "capture_ecran_intelligente": "Une capture d'écran d'analyse annotée avec la boîte englobante YOLOv8 est sauvegardée automatiquement uniquement lors de la première détection (déclenchement de la boucle IBVS).",
+      "reinitialisation_detection": "À la fin de la séquence mécanique d'arrachage, le robot appelle la route HTTP '/activer_detection' pour réinitialiser les variables et permettre la détection de la prochaine mauvaise herbe."
+    }
+  }
+}
