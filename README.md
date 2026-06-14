@@ -1,10 +1,14 @@
-# 🌾 SPARK (Smart Pratics Removal Automatique Kits)
-
-<p align="right">
-  <img src="images/detection-logo.png" width="220" alt="Logo Détection SPARK">
-</p>
-
-**SPARK** est un système robotique agricole de précision de pointe conçu pour optimiser la gestion des cultures de tomates en automatisant l'élimination ciblée des mauvaises herbes. Ce projet a été développé dans le cadre du module *Learning by Doing (LBD)* au sein de l'**École Centrale Casablanca**.
+<table>
+  <tr>
+    <td>
+      <h1>🌾 SPARK (Smart Pratics Removal Automatique Kits)</h1>
+      <blockquote>Projet de fin d'études LBD — Détection automatique et élimination ciblée de mauvaises herbes par robot mobile via vision artificielle YOLOv8, asservissement visuel (IBVS) et application web Flask.</blockquote>
+    </td>
+    <td align="right" valign="top">
+      <img src="images/detection-logo.png" width="180" alt="Logo École Centrale Casablanca"/>
+    </td>
+  </tr>
+</table>
 
 ---
 
@@ -13,6 +17,7 @@
 * **Encadrant :** Dr. Adil Ahidare
 * **Institution :** École Centrale Casablanca
 * **Année universitaire :** 2026
+* **Cible marché :** Agriculteurs possédant des champs de tomates
 
 ---
 
@@ -22,8 +27,31 @@ Le robot SPARK s'appuie sur la plateforme matérielle **Adeept PiCar Pro V2 Smar
 2. **L'action :** Élimination physique localisée de la mauvaise herbe à l'aide d'une pince montée sur son bras articulé.
 
 <p align="center">
-  <img src="images/robot-picar.png" width="550" alt="Robot SPARK PiCar Pro V2">
+  <img src="images/robot-picar.png" width="550" alt="Robot SPARK PiCar Pro V2"/>
 </p>
+
+---
+
+## 📱 QR Code — Accès au Site Web
+
+<p align="center">
+  <img src="images/qr code.png" width="200" alt="QR Code Accès Interface Web"/>
+  <br/>
+  <b>Scanner pour accéder au tableau de bord en direct</b>
+</p>
+
+---
+
+## 📁 Architecture Logicielle du Répertoire
+
+| Fichier / Répertoire | Description |
+| :--- | :--- |
+| `robot_client.py` | Code embarqué Raspberry Pi — capture vidéo, envoi des frames, gestion des moteurs et du buzzer. |
+| `web_app_2.py` | Serveur central PC — Flask, exécution du modèle YOLOv8 en temps réel, streaming et interface utilisateur. |
+| `yolov8n.pt` | Fichier de poids pré-entraînés YOLOv8 nano optimisé pour la détection des mauvaises herbes. |
+| `train.py` | Script d'entraînement initial du modèle de vision artificielle (Roboflow dataset). |
+| `templates/index.html` | Interface web de supervision — live stream, détections, graphe et panneau d'assistance. |
+| `donnes_projet.json` | Base de connaissances et configuration dynamique lue par l'assistant virtuel. |
 
 ---
 
@@ -48,15 +76,19 @@ Une fois connecté, le robot lance son fil conducteur principal dans un thread s
 
 ### 👁️ Phase 3 : L'Interruption Prioritaire (Détection d'une mauvaise herbe)
 Pendant que le robot avance sur les segments rectilignes de la Phase 2, une boucle d'écoute infinie surveille en continu le retour des analyses du modèle YOLOv8 envoyé par le PC. Si le PC renvoie des coordonnées valides (la plante est détectée), la démarche du robot change instantanément :
-#### Zoom sur la boucle de correction fine (IBVS) :
-Lorsque la mauvaise herbe est interceptée, le robot fige ses roues et engage la boucle de rétroaction visuelle (`boucle_ibvs`) pour amener l'outil d'arrachage pile au-dessus de la cible :
-* **Mesure de l'écart :** Le robot calcule la distance en pixels entre le centre de la mauvaise herbe dans l'image ($cx, cy$) et le centre optique idéal de la caméra ($320, 240$).
-* **Ajustement proportionnel :**
-  * Si la cible est trop à droite, le Servo 1 compense.
-  * Si la cible est trop basse, le Servo 2 s'abaisse pour rapprocher l'outil.
-  * Le Servo 3 s'ajuste en profondeur pour parfaire l'approche.
-* **Pause de stabilisation :** Le robot attend 0,6 seconde à chaque micro-déplacement pour stabiliser l'image avant de demander une nouvelle coordonnée. Ce cycle se répète jusqu'à un maximum de 15 fois.
-
+[Robot en mouvement]
+│
+▼ Une mauvaise herbe est détectée !
+[Arrêt immédiat des moteurs] (move.motorStop())
+│
+▼ Lancement de la boucle IBVS (Thread parallèle)
+[Correction fine du bras] (Ajustement itératif des servos 1, 2 et 3)
+│
+▼ Convergence (Erreur < 30 pixels)
+[Séquence d'arrachage physique] (Ouverture/Fermeture des pinces + Outils)
+│
+▼ Réactivation de la détection
+[Reprise du trajet initial] (Les moteurs redémarrent là où ils s'étaient arrêtés)
 ### 🛠️ Phase 4 : L'action mécanique d'élimination
 Dès que l'erreur visuelle passe sous le seuil de tolérance requis ($SEUIL_X = 30$, $SEUIL_Y = 30$), la fonction `arracher()` prend le relais :
 * **Alerte sonore :** Le buzzer émet un signal (note C4 pendant 1 seconde) pour notifier l'action.
@@ -75,46 +107,80 @@ Une fois les distances théoriques épuisées (les 70 cm du dernier segment acco
 Contrairement à un automatisme classique où l'on donnerait des coordonnées géométriques fixes, l'asservissement visuel utilise la caméra comme un **capteur de position en temps réel**. Le robot ajuste ses mouvements en fonction de ce qu'il voit à l'écran jusqu'à ce que l'image observée corresponde parfaitement à l'objectif visé.
 
 ### 🔄 La boucle de rétroaction appliquée au robot
+Lorsque le robot intercepte une mauvaise herbe, il fige ses roues et engage la boucle de rétroaction visuelle (`boucle_ibvs`) pour amener l'outil d'arrachage pile au-dessus de la cible :
 
-Le programme connaît le centre idéal de votre image (qui correspond à l'alignement parfait de l'outil d'arrachage), soit $CX = 320$ et $CY = 240$ pixels. Dès que YOLOv8 détecte une herbe à une position ($cx, cy$), l'écart (l'erreur visuelle) est calculé :
+1. **Mesure de l'erreur en pixels :** Le programme connaît le centre idéal de l'image (qui correspond à l'alignement parfait de l'outil d'arrachage), soit $CX = 320$ et $CY = 240$ pixels. Dès que YOLOv8 détecte une herbe à une position ($cx, cy$), l'écart (l'erreur visuelle) est calculé :
 
 $$\text{Erreur}_X = cx - 320$$
 
 $$\text{Erreur}_Y = cy - 240$$
 
-Pour annuler cette erreur, le Raspberry Pi applique des gains qui traduisent l'écart en pixels en un angle de rotation pour les moteurs :
-* **Servo 1 (Axe Horizontal) :** Si l'herbe est trop à droite ($\text{Erreur}_X > 0$), l'angle du Servo 1 augmente proportionnellement pour faire pivoter le bras vers la droite.
-* **Servo 2 (Axe Vertical) :** Si l'herbe est trop basse sur l'image ($\text{Erreur}_Y > 0$), le Servo 2 s'abaisse pour rapprocher la caméra et l'outil du sol.
-* **Servo 3 (Profondeur) :** Il aide à ajuster l'extension du bras pour parfaire l'approche spatiale.
+2. **Commande proportionnelle des servomoteurs :** Pour annuler cette erreur, le Raspberry Pi applique des gains qui traduisent l'écart en pixels en un angle de rotation pour les moteurs :
+   * **Servo 1 (Axe Horizontal) :** Si l'herbe est trop à droite ($\text{Erreur}_X > 0$), l'angle du Servo 1 augmente proportionnellement pour faire pivoter le bras vers la droite.
+   * **Servo 2 (Axe Vertical) :** Si l'herbe est trop basse sur l'image ($\text{Erreur}_Y > 0$), le Servo 2 s'abaisse pour rapprocher la caméra et l'outil du sol.
+   * **Servo 3 (Profondeur) :** Il aide à ajuster l'extension du bras pour parfaire l'approche spatiale.
 
-Ce processus itératif se répète (jusqu'à 15 fois maximum) jusqu'à ce que l'erreur devienne inférieure à 30 pixels (seuil de **convergence**).
+3. **Stabilisation et validation (Convergence) :** Le bras bouge légèrement, puis le robot **attend 0,6 seconde** pour que l'image ne soit pas floue. Il reprend une capture d'image, recalcule l'erreur, et ajuste à nouveau les servos. Ce cycle se répète jusqu'à un maximum de 15 fois jusqu'à ce que l'erreur devienne inférieure à 30 pixels.
 
 <p align="center">
-  <img src="images/courbe-convergence.png" width="550" alt="Courbe de convergence IBVS">
+  <img src="images/courbe-convergence.png" width="550" alt="Courbe de convergence IBVS"/>
 </p>
+
+---
+
+## 🧠 Spécifications de l'Intelligence Artificielle (YOLOv8)
+
+Nous avons choisi **YOLOv8** après comparaison rigoureuse avec YOLOv11 pour notre architecture embarquée :
+
+| Critère | YOLOv8 ✅ | YOLOv11 ⚠️ |
+| :--- | :--- | :--- |
+| **Stabilité** | Très stable, mature et optimisé. | Très récent, moins testé en production. |
+| **Documentation** | Complète, grand catalogue de cas d'usage. | Documentation encore limitée. |
+| **Support CPU** | Idéal pour l'inférence continue sur CPU local. | Moins optimisé pour l'inférence CPU brute. |
+| **Compatibilité Pi** | Intégration matérielle testée et fluide. | Problèmes de dépendances hardware constatés. |
+
+### Métriques d'entraînement du modèle
+* **Dataset :** Mauvaises herbes (Roboflow - Liseron des champs, Chénopode blanc)
+* **Nombre d'Epochs :** 50
+* **Taille d'image d'entrée :** $640 \times 640$ pixels
+* **Seuil de confiance minimal :** 0.5
+* **Score mAP50 :** 0.0306
 
 ---
 
 ## 🖥️ Tableau de Bord Web & Supervision Intelligente
 
-L'application Flask (`web_app_2.py`) génère une interface web de contrôle robuste et structurée :
+L'application Flask gère l'interface web utilisateur et l'interaction globale avec le système.
 
 <p align="center">
-  <img src="images/interface-web.png" width="600" alt="Interface Web de Supervision SPARK">
+  <img src="images/interface-web.png" width="600" alt="Interface Web de Supervision SPARK"/>
 </p>
 
 ### 🤖 L'Assistant Virtuel Intelligent (Chatbot AgriBot)
-Intégré directement sur l'interface et relié à la route `/chat`, ce composant permet à l'utilisateur ou aux membres du jury d'échanger en temps réel :
-* **Zone de saisie et d'historique :** Permet de poser des questions en langage naturel.
-* **Boutons de suggestions rapides (Quick Replies) :** Boutons d'accès direct (`Detection`, `Robot`, `Coordonnées`, `Trajet`) pour interroger le système en un seul clic.
-* **Intelligence Artificielle contextuelle :** Ce chatbot est propulsé par l'API **Gemini 2.5 Flash**. Il agit comme l'expert technique officiel de l'application Spark en lisant dynamiquement la base de connaissances du fichier `donnes_projet.json` pour répondre de façon concise et professionnelle en français.
+Intégré directement sur l'interface et relié à la route `/chat`, ce composant permet à l'opérateur ou au jury d'interagir en langage naturel :
+* **Interface conversationnelle :** Zone de saisie fluide avec mémorisation de l'historique local.
+* **Boutons de suggestions rapides (Quick Replies) :** Raccourcis en un clic (`Detection`, `Robot`, `Coordonnées`, `Trajet`).
+* **Intelligence Artificielle contextuelle :** Propulsé par l'API **Gemini 2.5 Flash**, le chatbot est configuré pour agir comme l'expert technique de la solution. Il parcourt dynamiquement la base de données structurée du fichier `donnes_projet.json` pour renvoyer des réponses adaptées et professionnelles en français.
 
 ---
 
 ## 🎬 Simulation du Trajet du Robot
 
-Voici l'aperçu dynamique du comportement cinématique et du suivi de trajectoire simulé de notre robot lors de l'application de sa patrouille :
+Aperçu dynamique du comportement cinématique et du suivi de trajectoire du robot SPARK lors de sa patrouille automatisée :
 
 <p align="center">
-  <img src="images/simulation-trajet.gif" width="500" alt="Simulation du trajet du robot SPARK">
+  <img src="images/simulation-trajet.gif" width="500" alt="Simulation du trajet du robot SPARK"/>
 </p>
+
+---
+
+## 🔧 Spécifications Techniques Matérielles
+
+| Composant | Détails et Rôle |
+| :--- | :--- |
+| **Châssis Robot** | Adeept PiCar Pro V2 |
+| **Calculateur Embarqué** | Raspberry Pi 4B |
+| **Capteur Optique** | Caméra HD USB (Résolution d'acquisition $640 \times 480$) |
+| **Indicateur Sonore** | TonalBuzzer connecté au port GPIO 18 |
+| **Station de Calcul** | PC Windows distant — Inférence YOLOv8 + Serveur Flask |
+| **Réseau de communication** | Protocole WiFi TCP/IP sur le Port Unique `9999` |
