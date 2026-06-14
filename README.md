@@ -2,7 +2,7 @@
   <tr>
     <td>
       <h1>🌾 SPARK (Smart Pratics Removal Automatique Kits)</h1>
-      <blockquote>Projet de fin d'études LBD — Détection automatique et élimination ciblée de mauvaises herbes par robot mobile via vision artificielle YOLOv8, asservissement visuel (IBVS) et application web Flask.</blockquote>
+      <blockquote>Détection automatique et élimination ciblée de mauvaises herbes par robot mobile via vision artificielle YOLOv8, asservissement visuel (IBVS) et application web Flask.</blockquote>
     </td>
     <td align="right" valign="top">
       <img src="images/detection-logo.png" width="180" alt="Logo École Centrale Casablanca"/>
@@ -130,12 +130,12 @@ $$\text{Erreur}_Y = cy - 240$$
 
 Nous avons choisi **YOLOv8** après comparaison rigoureuse avec YOLOv11 pour notre architecture embarquée :
 
-| Critère | YOLOv8 ✅ | YOLOv11 ⚠️ |
-| :--- | :--- | :--- |
-| **Stabilité** | Très stable, mature et optimisé. | Très récent, moins testé en production. |
-| **Documentation** | Complète, grand catalogue de cas d'usage. | Documentation encore limitée. |
-| **Support CPU** | Idéal pour l'inférence continue sur CPU local. | Moins optimisé pour l'inférence CPU brute. |
-| **Compatibilité Pi** | Intégration matérielle testée et fluide. | Problèmes de dépendances hardware constatés. |
+| Critère | YOLOv8 ✅ | 
+| :--- | :--- | 
+| **Stabilité** | Très stable, mature et optimisé. | 
+| **Documentation** | Complète, grand catalogue de cas d'usage. | 
+| **Support CPU** | Idéal pour l'inférence continue sur CPU local. | 
+| **Compatibilité Pi** | Intégration matérielle testée et fluide. | 
 
 ### Métriques d'entraînement du modèle
 * **Dataset :** Mauvaises herbes (Roboflow - Liseron des champs, Chénopode blanc)
@@ -183,4 +183,8 @@ Aperçu dynamique du comportement cinématique et du suivi de trajectoire du rob
 | **Station de Calcul** | PC Windows distant — Inférence YOLOv8 + Serveur Flask |
 | **Réseau de communication** | Protocole WiFi TCP/IP sur le Port Unique `9999` |
 
-## 👥 Équipe — PLBD_25_
+---
+
+## 👥 Équipe — Soutenance PLBD_25_
+
+---
