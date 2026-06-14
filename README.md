@@ -128,7 +128,7 @@ $$\text{Erreur}_Y = cy - 240$$
 
 ## 🧠 Spécifications de l'Intelligence Artificielle (YOLOv8)
 
-Nous avons choisi **YOLOv8** après comparaison rigoureuse avec YOLOv11 pour notre architecture embarquée :
+Nous avons choisi **YOLOv8**  pour notre architecture embarquée :
 
 | Critère | YOLOv8 ✅ | 
 | :--- | :--- | 
