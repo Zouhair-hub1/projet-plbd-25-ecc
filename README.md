@@ -1,7 +1,7 @@
 <table>
   <tr>
     <td>
-      <h1>🌾 SPARK (Smart Pratics Removal Automatique Kits)</h1>
+      <h1>🌾 SPARK (Smart Pratics  Automatique Removal Kits)</h1>
       <blockquote>Détection automatique et élimination ciblée de mauvaises herbes par robot mobile via vision artificielle YOLOv8, asservissement visuel (IBVS) et application web Flask.</blockquote>
     </td>
     <td align="right" valign="top">
