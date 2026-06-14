@@ -35,7 +35,7 @@ Le robot SPARK s'appuie sur la plateforme matérielle **Adeept PiCar Pro V2 Smar
 ## 📱 QR Code — Accès au Site Web
 
 <p align="center">
-  <img src="images/qr code.png" width="200" alt="QR Code Accès Interface Web"/>
+  <img src="images/qr code .png" width="200" alt="QR Code Accès Interface Web"/>
   <br/>
   <b>Scanner pour accéder au tableau de bord en direct</b>
 </p>
