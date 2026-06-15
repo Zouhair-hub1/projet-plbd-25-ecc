@@ -1,8 +1,7 @@
 {
   "projet": {
     "nom": "Spark",
-    "nom_alternatif": "AgriBot",
-    "cadre": "Projet Learning by Doing (LBD)",
+    "cadre": "Projet Learning by Doing (PLBD)",
     "etablissement": "École Centrale Casablanca",
     "annee": "2026",
     "cible_marche": "Agriculteurs possédant des champs de tomates",
@@ -11,12 +10,12 @@
   "equipe_ibd_25": {
     "membres": [
       "Zouhair Imad",
-      "Illyas Dali",
-      "Fatima Ezzahra Melouki",
+      "Ilyass Dali",
+      "Fatima Ezzahra Mlouki",
       "Ines Dridi",
-      "Mohmed Chebabe"
+      "Mohammed Chbab"
     ],
-    "encadrant": "Prof. Adil Ahidare"
+    "encadrant": "M.Adil Ahidar"
   },
   "architecture_logicielle": {
     "fichiers_principaux": {
@@ -28,7 +27,13 @@
   "specifications_techniques": {
     "robot": {
       "modele": "Adeept PiCar Pro V2",
-      "composants": ["Caméra USB", "Bras robotique à 4 servomoteurs", "Buzzer", "Roues directrices", "Moteurs DC"],
+      "composants": [
+        "Caméra USB",
+        "Bras robotique à 4 servomoteurs",
+        "Buzzer",
+        "Roues directrices",
+        "Moteurs DC"
+      ],
       "vitesse_croisiere": "Paramètre réglé à 5",
       "hauteur_fixation_camera_cm": 18.0
     },
@@ -42,14 +47,26 @@
       },
       "dataset_source": "Roboflow",
       "classes_mauvaises_herbes": [
-        {"nom_anglais": "Field Bindweed", "nom_francais": "Liseron des champs"},
-        {"nom_anglais": "Common Lambsquarters", "nom_francais": "Chénopode blanc"}
+        {
+          "nom_anglais": "Field Bindweed",
+          "nom_francais": "Liseron des champs"
+        },
+        {
+          "nom_anglais": "Common Lambsquarters",
+          "nom_francais": "Chénopode blanc"
+        }
       ],
       "seuil_confiance_detection": "50% (conf=0.5)"
     },
     "vision_et_coordonnees": {
-      "dimensions_flux_pixels": {"largeur": 640, "hauteur": 480},
-      "dimensions_reelles_cm": {"largeur": 23.0, "hauteur": 17.0},
+      "dimensions_flux_pixels": {
+        "largeur": 640,
+        "hauteur": 480
+      },
+      "dimensions_reelles_cm": {
+        "largeur": 23.0,
+        "hauteur": 17.0
+      },
       "formule_x_cm": "(pixel_x / 640) * 23.0",
       "formule_y_cm": "(pixel_y / 480) * 17.0",
       "formule_hauteur_herbe_cm": "(hauteur_box_pixels / 480) * 17.0",
@@ -65,17 +82,35 @@
       },
       "criteres_boucle": {
         "max_iterations": 15,
-        "seuil_convergence_pixels": {"seuil_x": 30, "seuil_y": 30},
+        "seuil_convergence_pixels": {
+          "seuil_x": 30,
+          "seuil_y": 30
+        },
         "temporisation_stabilisation_sevos": "0.6 seconde à chaque itération"
       }
     },
     "navigation_et_trajet": {
       "segments": [
-        {"action": "Avancer en ligne droite", "valeur_cm": 75},
-        {"action": "Tourner à gauche", "valeur": "95 degrés (Roues braquées à 45° pendant 19 secondes)"},
-        {"action": "Avancer en ligne droite", "valeur_cm": 60},
-        {"action": "Tourner à gauche", "valeur": "95 degrés (Roues braquées à 45° pendant 19 secondes)"},
-        {"action": "Avancer en ligne droite", "valeur_cm": 70}
+        {
+          "action": "Avancer en ligne droite",
+          "valeur_cm": 75
+        },
+        {
+          "action": "Tourner à gauche",
+          "valeur": "95 degrés (Roues braquées à 45° pendant 19 secondes)"
+        },
+        {
+          "action": "Avancer en ligne droite",
+          "valeur_cm": 60
+        },
+        {
+          "action": "Tourner à gauche",
+          "valeur": "95 degrés (Roues braquées à 45° pendant 19 secondes)"
+        },
+        {
+          "action": "Avancer en ligne droite",
+          "valeur_cm": 70
+        }
       ],
       "fin_de_mission": "Retour à la position initiale et extinction des switches"
     },
