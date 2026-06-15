@@ -1,7 +1,7 @@
 <table>
   <tr>
     <td>
-      <h1>🌾 SPARK (Smart Pratics  Automatique Removal Kits)</h1>
+      <h1>🌾 SPARK (Smart Pratics Automatique Removal Kits)</h1>
       <blockquote>Détection automatique et élimination ciblée de mauvaises herbes par robot mobile via vision artificielle YOLOv8, asservissement visuel (IBVS) et application web Flask.</blockquote>
     </td>
     <td align="right" valign="top">
@@ -13,8 +13,8 @@
 ---
 
 ## 👥 Équipe du Projet (PLBD 25)
-* **Membres de l'équipe :** Zouhair Imad, Ilyas Dali, Fatima Ezzahra Melouki, Mohmed Chebabe, Inas Dridi
-* **Encadrant :** Dr. Adil Ahidare
+* **Membres de l'équipe :** Zouhair Imad, Ilyass Dali, Fatima Ezzahra Mlouki, Mohammed Chbab, Inas Dridi
+* **Encadrant :** M.Adil Ahidar
 * **Institution :** École Centrale Casablanca
 * **Année universitaire :** 2026
 * **Cible marché :** Agriculteurs possédant des champs de tomates
@@ -38,6 +38,16 @@ Le robot SPARK s'appuie sur la plateforme matérielle **Adeept PiCar Pro V2 Smar
   <img src="images/qr code .png" width="200" alt="QR Code Accès Interface Web"/>
   <br/>
   <b>Scanner pour accéder au tableau de bord en direct</b>
+</p>
+
+---
+
+## 🌐 Architecture Réseau et Communication du Système
+
+<p align="center">
+  <img src="images/architecture-systeme.png" width="600" alt="Architecture de communication WiFi SPARK"/>
+  <br/>
+  <b>Diagramme des flux d'échange de données en temps réel entre le Robot et le PC</b>
 </p>
 
 ---
@@ -87,6 +97,7 @@ Pendant que le robot avance sur les segments rectilignes de la Phase 2, une bouc
   * 🦾 **[Séquence d'arrachage physique]** → Ouverture/Fermeture des pinces + Outils
   * 👁️ **[Réactivation de la détection]**
   * 🔄 **[Reprise du trajet initial]** → Les moteurs redémarrent là où ils s'étaient arrêtés.
+
 ### 🛠️ Phase 4 : L'action mécanique d'élimination
 Dès que l'erreur visuelle passe sous le seuil de tolérance requis ($SEUIL_X = 30$, $SEUIL_Y = 30$), la fonction `arracher()` prend le relais :
 * **Alerte sonore :** Le buzzer émet un signal (note C4 pendant 1 seconde) pour notifier l'action.
@@ -128,14 +139,14 @@ $$\text{Erreur}_Y = cy - 240$$
 
 ## 🧠 Spécifications de l'Intelligence Artificielle (YOLOv8)
 
-Nous avons choisi **YOLOv8**  pour notre architecture embarquée :
+Nous avons choisi **YOLOv8** pour notre architecture embarquée :
 
-| Critère | YOLOv8 ✅ | 
-| :--- | :--- | 
-| **Stabilité** | Très stable, mature et optimisé. | 
-| **Documentation** | Complète, grand catalogue de cas d'usage. | 
-| **Support CPU** | Idéal pour l'inférence continue sur CPU local. | 
-| **Compatibilité Pi** | Intégration matérielle testée et fluide. | 
+| Critère | YOLOv8 ✅ |
+| :--- | :--- |
+| **Stabilité** | Très stable, mature et optimisé. |
+| **Documentation** | Complète, grand catalogue de cas d'usage. |
+| **Support CPU** | Idéal pour l'inférence continue sur CPU local. |
+| **Compatibilité Pi** | Intégration matérielle testée et fluide. |
 
 ### Métriques d'entraînement du modèle
 * **Dataset :** Mauvaises herbes (Roboflow - Liseron des champs, Chénopode blanc)
