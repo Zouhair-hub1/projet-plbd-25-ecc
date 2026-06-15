@@ -13,8 +13,8 @@
 ---
 
 ## 👥 Équipe du Projet (PLBD 25)
-* **Membres de l'équipe :** Zouhair Imad, Ilyas Dali, Fatima Ezzahra Melouki, Mohmed Chebabe, Inas Dridi
-* **Encadrant :** Dr. Adil Ahidare
+* **Membres de l'équipe :** Zouhair Imad, Ilyass Dali, Fatima Ezzahra Mlouki, Mohammed Chbab, Inas Dridi
+* **Encadrant :** M.Adil Ahidar
 * **Institution :** École Centrale Casablanca
 * **Année universitaire :** 2026
 * **Cible marché :** Agriculteurs possédant des champs de tomates
