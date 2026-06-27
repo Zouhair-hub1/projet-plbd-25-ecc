@@ -1,0 +1,1654 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#050807">
+  <title>S.P.A.R.K — Interface de supervision</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <style>
+    :root{
+      --bg:#040807;
+      --panel:#0b1412;
+      --panel-2:#0f1b18;
+      --glass:rgba(13,24,21,.78);
+      --glass-strong:rgba(13,24,21,.94);
+      --line:rgba(210,255,230,.13);
+      --line-2:rgba(255,255,255,.075);
+      --text:#f6faf7;
+      --muted:#91a39b;
+      --green:#5af29b;
+      --mint:#d8ffe9;
+      --blue:#7bc8ff;
+      --red:#ff665e;
+      --amber:#ffd27a;
+      --dark:#020403;
+      --shadow:0 28px 90px rgba(0,0,0,.52);
+      --radius:24px;
+      --sidebar:280px;
+    }
+
+    *{box-sizing:border-box;margin:0;padding:0}
+    html{scroll-behavior:smooth}
+    body{
+      min-height:100vh;
+      overflow-x:hidden;
+      background:
+        radial-gradient(circle at 18% -8%,rgba(90,242,155,.15),transparent 34rem),
+        radial-gradient(circle at 92% 0%,rgba(123,200,255,.12),transparent 34rem),
+        radial-gradient(circle at 52% 118%,rgba(255,210,122,.06),transparent 34rem),
+        linear-gradient(135deg,#030504 0%,#07110f 48%,#03090a 100%);
+      color:var(--text);
+      font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      -webkit-font-smoothing:antialiased;
+    }
+
+    body:before{
+      content:"";
+      position:fixed;
+      inset:0;
+      pointer-events:none;
+      background-image:
+        linear-gradient(rgba(255,255,255,.023) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(255,255,255,.023) 1px,transparent 1px);
+      background-size:64px 64px;
+      mask-image:linear-gradient(to bottom,rgba(0,0,0,.78),transparent 86%);
+    }
+
+    button,input{font:inherit;color:inherit}
+    button{border:0;cursor:pointer}
+    a{color:inherit;text-decoration:none}
+
+    .shell{
+      position:relative;
+      z-index:1;
+      display:grid;
+      grid-template-columns:var(--sidebar) minmax(0,1fr);
+      min-height:100vh;
+      transition:grid-template-columns .28s ease;
+    }
+
+    .glass{
+      border:1px solid var(--line);
+      background:
+        linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.018)),
+        linear-gradient(145deg,rgba(15,27,24,.88),rgba(7,13,12,.76));
+      box-shadow:var(--shadow);
+      
+    }
+
+    .sidebar{
+      position:sticky;
+      top:0;
+      height:100vh;
+      padding:20px 16px;
+      border-right:1px solid var(--line);
+      background:
+        linear-gradient(180deg,rgba(255,255,255,.035),transparent 34%),
+        rgba(3,8,7,.82);
+      
+      z-index:50;
+      transition:transform .28s ease, opacity .28s ease;
+    }
+
+    body.sidebar-collapsed .shell{
+      grid-template-columns:0 minmax(0,1fr);
+    }
+
+    body.sidebar-collapsed .sidebar{
+      transform:translateX(-105%);
+      opacity:0;
+      pointer-events:none;
+    }
+
+    .brand{
+      position:relative;
+      overflow:hidden;
+      padding:14px 14px 14px 68px;
+      border-radius:24px;
+      border:1px solid var(--line);
+      background:
+        radial-gradient(circle at 18% 18%,rgba(90,242,155,.2),transparent 44%),
+        linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.025));
+    }
+
+    .brand:after{
+      content:"";
+      position:absolute;
+      right:-46px;
+      bottom:-58px;
+      width:150px;
+      height:150px;
+      border-radius:50%;
+      background:radial-gradient(circle,rgba(123,200,255,.14),transparent 68%);
+    }
+
+    .brand-row{position:relative;z-index:1;display:flex;gap:9px;align-items:center}
+    .brand-mark{
+      width:38px;
+      height:38px;
+      display:grid;
+      place-items:center;
+      border-radius:16px;
+      border:1px solid rgba(216,255,233,.2);
+      background:
+        linear-gradient(145deg,rgba(216,255,233,.18),rgba(123,200,255,.08)),
+        rgba(255,255,255,.035);
+      box-shadow:0 0 34px rgba(90,242,155,.16),inset 0 1px 0 rgba(255,255,255,.18);
+    }
+
+    .brand-mark svg{width:25px;height:25px}
+    .brand h1{
+      font-size:20px;
+      line-height:1;
+      letter-spacing:.13em;
+      color:transparent;
+      background:linear-gradient(90deg,#f7fff9,#5af29b 70%,#7bc8ff);
+      -webkit-background-clip:text;
+      background-clip:text;
+      font-weight:850;
+    }
+    .brand p{margin-top:5px;color:#aab8b1;font-size:10px;line-height:1.28}
+
+    .nav{
+      display:grid;
+      gap:8px;
+      margin-top:22px;
+    }
+
+    .nav button{
+      min-height:50px;
+      width:100%;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      padding:0 15px;
+      color:#9eaca6;
+      background:transparent;
+      border-radius:17px;
+      text-align:left;
+      font-weight:750;
+      font-size:13px;
+      transition:.22s ease;
+    }
+
+    .nav svg{width:19px;height:19px;flex:0 0 auto}
+    .nav button:hover{background:rgba(255,255,255,.055);color:white;transform:translateX(2px)}
+    .nav .active{
+      color:#07110c;
+      background:linear-gradient(135deg,#eafff1 0%,#5af29b 52%,#7bc8ff 140%);
+      box-shadow:0 16px 40px rgba(90,242,155,.22);
+    }
+
+    .robot-card{
+      position:absolute;
+      left:24px;
+      right:24px;
+      bottom:18px;
+      width:auto;
+      height:232px;
+      padding:0;
+      border-radius:22px;
+      border:1px solid var(--line);
+      overflow:hidden;
+      background:
+        radial-gradient(circle at 50% 42%,rgba(90,242,155,.13),transparent 50%),
+        linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.018)),
+        linear-gradient(180deg,rgba(12,22,20,.96),rgba(5,10,9,.92));
+      box-shadow:0 24px 62px rgba(0,0,0,.42);
+    }
+
+    .robot-status-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      min-height:58px;
+      border-bottom:1px solid var(--line-2);
+    }
+
+    .robot-state{
+      padding:10px 12px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      border-right:1px solid var(--line-2);
+    }
+
+    .robot-state:last-child{border-right:0}
+
+    .robot-state span{
+      color:var(--muted);
+      font-size:10.5px;
+      font-weight:800;
+    }
+
+    .robot-state b{
+      margin-top:5px;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      color:var(--green);
+      font-size:12.5px;
+      font-weight:900;
+      letter-spacing:.02em;
+      text-transform:uppercase;
+      text-shadow:0 0 16px rgba(90,242,155,.16);
+    }
+
+    .robot-state .dot{width:10px;height:10px}
+
+    .status-pill{
+      display:flex;
+      align-items:center;
+      gap:7px;
+      padding:6px 10px;
+      border-radius:999px;
+      background:rgba(90,242,155,.12);
+      color:var(--green);
+      font-size:11px;
+      font-weight:850;
+    }
+
+    .dot{
+      display:inline-block;
+      width:8px;
+      height:8px;
+      flex:0 0 auto;
+      border-radius:50%;
+      background:var(--green);
+      box-shadow:0 0 18px var(--green);
+      animation:pulse 1.8s ease-in-out infinite;
+    }
+
+    .robot-visual{
+      position:relative;
+      width:100%;
+      height:106px;
+      padding:7px 8px 3px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+    }
+
+    .robot-visual:before{
+      content:"";
+      position:absolute;
+      left:50%;
+      bottom:5px;
+      width:138px;
+      height:26px;
+      transform:translateX(-50%);
+      border-radius:50%;
+      background:radial-gradient(circle,rgba(90,242,155,.22),rgba(90,242,155,.08) 42%,transparent 72%);
+      filter:blur(7px);
+    }
+
+    .robot-visual:after{
+      content:"";
+      position:absolute;
+      inset:0;
+      border-radius:0;
+      border:0;
+      background:
+        radial-gradient(circle at 50% 42%,rgba(123,200,255,.1),transparent 42%),
+        linear-gradient(180deg,transparent,rgba(0,0,0,.12));
+      pointer-events:none;
+    }
+
+    .robot-visual img{
+      position:relative;
+      z-index:2;
+      width:92%;
+      height:100px;
+      object-fit:contain;
+      border-radius:0;
+      background:transparent;
+      box-shadow:none;
+      filter:drop-shadow(0 20px 20px rgba(0,0,0,.52)) drop-shadow(0 0 18px rgba(90,242,155,.16));
+      transform:none;
+    }
+
+    .robot-metrics{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      min-height:68px;
+      border-top:1px solid var(--line-2);
+      background:rgba(255,255,255,.025);
+    }
+
+    .robot-metric{
+      padding:10px 8px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      border-right:1px solid var(--line-2);
+    }
+
+    .robot-metric:last-child{border-right:0}
+
+    .robot-metric strong{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      color:var(--text);
+      font-size:16px;
+      font-weight:900;
+      letter-spacing:-.03em;
+    }
+
+    .robot-metric strong svg{
+      width:28px;
+      height:22px;
+      color:var(--green);
+      filter:drop-shadow(0 0 9px rgba(90,242,155,.28));
+    }
+
+    .robot-metric strong small{
+      color:#dce9e2;
+      font-size:11px;
+      font-weight:850;
+      letter-spacing:0;
+    }
+
+    .robot-metric span{
+      margin-top:5px;
+      color:var(--muted);
+      font-size:10.5px;
+      font-weight:750;
+    }
+
+    .main{
+      min-width:0;
+      padding:20px;
+    }
+
+    .topbar{
+      min-height:78px;
+      margin-bottom:18px;
+      padding:14px 22px;
+      display:flex;
+      align-items:center;
+      gap:16px;
+      border-radius:26px;
+    }
+
+    .menu-btn{
+      position:fixed;
+      top:43px;
+      left:31px;
+      z-index:120;
+      display:grid;
+      width:38px;
+      height:38px;
+      border-radius:999px;
+      border:0;
+      background:transparent;
+      place-items:center;
+      transition:.22s ease;
+    }
+
+    .menu-btn:hover{
+      color:var(--green);
+      background:rgba(255,255,255,.07);
+    }
+
+    body.sidebar-collapsed .menu-btn{
+      color:var(--green);
+      background:rgba(90,242,155,.08);
+      box-shadow:none;
+    }
+
+    body.sidebar-collapsed .topbar{
+      padding-left:78px;
+    }
+
+    .title h2{font-size:21px;letter-spacing:-.035em}
+    .title p{margin-top:5px;color:var(--muted);font-size:13px}
+    .topbar-spacer{flex:1}
+    .clock{text-align:right}
+    .clock strong{font-size:17px}
+    .clock span{display:block;margin-top:4px;color:var(--muted);font-size:12px}
+
+    .layout{
+      display:grid;
+      grid-template-columns:minmax(0,1.5fr) minmax(330px,.8fr);
+      grid-template-areas:
+        "video detections"
+        "kpis kpis"
+        "charts charts";
+      gap:18px;
+    }
+
+    .layout.focus-gps,
+    .layout.focus-verification,
+    .layout.focus-assistant,
+    .layout.focus-about{
+      grid-template-columns:1fr;
+      gap:18px;
+    }
+
+    .layout.focus-gps{
+      grid-template-areas:"map";
+    }
+
+    .layout.focus-verification{
+      grid-template-areas:"verification";
+    }
+
+    .layout.focus-assistant{
+      grid-template-areas:"assistant";
+    }
+
+    .layout.focus-about{
+      grid-template-areas:"about";
+    }
+
+    .layout.focus-gps > :not(#gps),
+    .layout.focus-verification > :not(#verification),
+    .layout.focus-assistant > :not(#assistant),
+    .layout.focus-about > :not(#about){
+      display:none;
+    }
+
+    .layout.focus-gps #gps{
+      display:block;
+    }
+
+    .layout.focus-verification #verification{
+      display:block;
+    }
+
+    .layout.focus-assistant #assistant,
+    .layout.focus-about #about{
+      display:grid;
+    }
+
+    .panel{
+      position:relative;
+      overflow:hidden;
+      border-radius:var(--radius);
+    }
+
+    .panel:before{
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      border-radius:inherit;
+      background:linear-gradient(135deg,rgba(255,255,255,.09),transparent 22%,transparent 78%,rgba(90,242,155,.05));
+      opacity:.72;
+      z-index:0;
+    }
+
+    .panel > *{position:relative;z-index:1}
+    .panel-head{
+      min-height:56px;
+      padding:0 18px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      border-bottom:1px solid var(--line-2);
+    }
+
+    .panel-head svg{width:18px;height:18px;color:var(--green)}
+    .panel-head h3{
+      font-size:13px;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+    .panel-head small{margin-left:auto;color:var(--muted);font-weight:750}
+
+    .video-panel{grid-area:video}
+    .video-box{
+      position:relative;
+      height:clamp(390px,43vw,620px);
+      background:
+        radial-gradient(circle at 50% 45%,rgba(90,242,155,.06),transparent 42%),
+        #020403;
+    }
+    .video-box img{
+      width:100%;
+      height:100%;
+      display:block;
+      object-fit:contain;
+    }
+    .video-box:after{
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      background:
+        linear-gradient(to bottom,rgba(0,0,0,.18),transparent 28%,rgba(0,0,0,.38)),
+        linear-gradient(90deg,rgba(90,242,155,.07),transparent 12%,transparent 88%,rgba(123,200,255,.07));
+    }
+    .video-overlay{
+      position:absolute;
+      left:16px;
+      right:16px;
+      bottom:16px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      z-index:2;
+    }
+    .chip{
+      padding:8px 11px;
+      border-radius:999px;
+      color:#e6fff0;
+      background:rgba(2,6,5,.72);
+      border:1px solid rgba(255,255,255,.11);
+      
+      font-size:12px;
+      font-weight:750;
+    }
+    .live{
+      margin-left:auto;
+      display:flex;
+      align-items:center;
+      gap:7px;
+      padding:7px 10px;
+      border-radius:999px;
+      color:#ffc2bd;
+      background:rgba(255,102,94,.12);
+      font-size:11px;
+      font-weight:850;
+    }
+    .live i{width:7px;height:7px;border-radius:50%;background:var(--red);box-shadow:0 0 14px var(--red)}
+
+    .map-panel{grid-area:map;display:none}
+    #gpsMap{height:366px;background:#07100d}
+    .layout.focus-gps #gpsMap{height:560px}
+    .gps-data{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      border-top:1px solid var(--line-2);
+    }
+    .gps-data div{
+      padding:15px 18px;
+      border-right:1px solid var(--line-2);
+      border-bottom:1px solid var(--line-2);
+    }
+    .gps-data div:nth-child(2n){border-right:0}
+    .gps-data div:nth-last-child(-n+2){border-bottom:0}
+    .gps-data span{display:block;color:var(--muted);font-size:11px;font-weight:750}
+    .gps-data b{display:block;margin-top:7px;font-size:14px}
+
+    .kpis{
+      grid-area:kpis;
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:14px;
+    }
+
+    .kpi{
+      position:relative;
+      overflow:hidden;
+      min-height:130px;
+      padding:19px;
+      border-radius:23px;
+    }
+    .kpi:after{
+      content:"";
+      position:absolute;
+      right:-58px;
+      top:-58px;
+      width:150px;
+      height:150px;
+      border-radius:50%;
+      background:radial-gradient(circle,rgba(90,242,155,.16),transparent 70%);
+    }
+    .kpi span{
+      color:var(--muted);
+      font-size:12px;
+      font-weight:850;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+    .kpi strong{
+      display:block;
+      margin-top:18px;
+      font-size:30px;
+      letter-spacing:-.05em;
+    }
+    .kpi strong small{font-size:15px;color:#dce9e2;letter-spacing:0}
+    .kpi em{
+      display:block;
+      margin-top:8px;
+      color:var(--green);
+      font-style:normal;
+      font-size:12px;
+      font-weight:850;
+    }
+
+    .charts{
+      grid-area:charts;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:18px;
+    }
+    .chart-wrap{height:280px;padding:18px}
+
+    .detections{grid-area:detections}
+    .detection-list{
+      max-height:calc(clamp(390px,43vw,620px) - 56px);
+      overflow:auto;
+      padding:14px;
+      display:grid;
+      gap:12px;
+    }
+    .detection-card{
+      display:grid;
+      grid-template-columns:92px minmax(0,1fr);
+      gap:13px;
+      padding:11px;
+      border-radius:18px;
+      background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.025));
+      border:1px solid rgba(255,255,255,.075);
+      transition:.2s ease;
+    }
+    .detection-card:hover{transform:translateY(-2px);background:rgba(90,242,155,.065)}
+    .detection-card img{
+      width:92px;
+      height:78px;
+      object-fit:cover;
+      border-radius:14px;
+      background:#121b18;
+    }
+    .detection-card h4{font-size:13px}
+    .detection-card p{margin-top:6px;color:var(--muted);font-size:12px;line-height:1.45}
+    .detection-card time{display:block;margin-top:7px;color:#c1cec7;font-size:11px;font-weight:750}
+    .coord-row{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+    .coord{
+      padding:5px 7px;
+      border-radius:999px;
+      background:rgba(123,200,255,.09);
+      border:1px solid rgba(123,200,255,.16);
+      color:#bfe5ff;
+      font-size:11px;
+      font-weight:750;
+    }
+    .advice{
+      margin-top:9px;
+      padding:8px 10px;
+      border-radius:12px;
+      border-left:3px solid var(--amber);
+      background:rgba(255,210,122,.08);
+      color:#ffe1a3;
+      font-size:12px;
+      line-height:1.45;
+    }
+    .empty{
+      padding:36px 20px;
+      text-align:center;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.55;
+    }
+
+    .verification{
+      grid-area:verification;
+      display:none;
+      border-radius:var(--radius);
+    }
+
+    .verification-grid{
+      padding:18px;
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:16px;
+    }
+
+    .verification-card{
+      overflow:hidden;
+      border-radius:22px;
+      border:1px solid rgba(255,255,255,.075);
+      background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.025));
+      transition:.2s ease;
+    }
+
+    .verification-card:hover{transform:translateY(-2px);background:rgba(90,242,155,.06)}
+
+    .verification-card img{
+      width:100%;
+      height:190px;
+      display:block;
+      object-fit:cover;
+      background:#121b18;
+    }
+
+    .verification-body{
+      padding:13px;
+    }
+
+    .verification-body h4{
+      font-size:13px;
+    }
+
+    .verification-body p{
+      margin-top:7px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.45;
+    }
+
+    .verification-status{
+      display:inline-flex;
+      align-items:center;
+      gap:7px;
+      margin-top:10px;
+      padding:6px 9px;
+      border-radius:999px;
+      color:var(--green);
+      background:rgba(90,242,155,.1);
+      border:1px solid rgba(90,242,155,.15);
+      font-size:11px;
+      font-weight:850;
+    }
+
+    .assistant{
+      grid-area:assistant;
+      display:none;
+      grid-template-columns:minmax(0,.9fr) minmax(340px,1.1fr);
+      gap:18px;
+    }
+    .ai-intro{
+      padding:18px;
+      display:flex;
+      align-items:center;
+      gap:15px;
+      border-radius:24px;
+    }
+    .ai-orb{
+      width:56px;
+      height:56px;
+      flex:0 0 auto;
+      display:grid;
+      place-items:center;
+      border-radius:19px;
+      border:1px solid var(--line);
+      background:linear-gradient(145deg,rgba(90,242,155,.2),rgba(123,200,255,.13));
+    }
+    .ai-intro h3{font-size:15px}
+    .ai-intro p{margin-top:6px;color:var(--muted);font-size:13px;line-height:1.5}
+    .chat{
+      min-height:230px;
+      display:grid;
+      grid-template-rows:1fr auto auto;
+      border-radius:24px;
+      overflow:hidden;
+    }
+    .messages{
+      max-height:260px;
+      overflow:auto;
+      padding:14px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .message{
+      max-width:86%;
+      padding:10px 12px;
+      border-radius:14px;
+      font-size:12px;
+      line-height:1.5;
+      color:#e9f5ef;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.07);
+    }
+    .message.user{
+      align-self:flex-end;
+      color:#06110c;
+      background:linear-gradient(135deg,#eafff1,#5af29b);
+    }
+    .suggestions{
+      display:flex;
+      gap:7px;
+      flex-wrap:wrap;
+      padding:0 14px 12px;
+    }
+    .suggestions button{
+      padding:6px 9px;
+      border-radius:999px;
+      background:rgba(123,200,255,.08);
+      border:1px solid rgba(123,200,255,.16);
+      color:#bfe5ff;
+      font-size:11px;
+      font-weight:750;
+    }
+    .chat-form{
+      display:grid;
+      grid-template-columns:1fr 52px;
+      gap:10px;
+      padding:10px;
+      border-top:1px solid var(--line-2);
+    }
+    .chat-form input{
+      min-width:0;
+      height:52px;
+      padding:0 16px;
+      outline:0;
+      border-radius:18px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.05);
+      color:var(--text);
+    }
+    .chat-form input:focus{border-color:rgba(90,242,155,.35);box-shadow:0 0 0 4px rgba(90,242,155,.08)}
+    .chat-form button{
+      display:grid;
+      place-items:center;
+      border-radius:18px;
+      color:#06110c;
+      background:linear-gradient(135deg,#eafff1 0%,#5af29b 55%,#7bc8ff 130%);
+    }
+
+    .about{
+      grid-area:about;
+      display:none;
+      grid-template-columns:1fr 1fr;
+      gap:18px;
+    }
+
+    .about-card{
+      min-height:220px;
+      padding:22px;
+      border-radius:24px;
+    }
+
+    .about-card h3{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-size:14px;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+
+    .about-card h3 svg{
+      width:19px;
+      height:19px;
+      color:var(--green);
+    }
+
+    .about-empty{
+      min-height:145px;
+      margin-top:18px;
+      border:1px dashed rgba(210,255,230,.17);
+      border-radius:20px;
+      background:
+        radial-gradient(circle at 30% 20%,rgba(90,242,155,.06),transparent 42%),
+        rgba(255,255,255,.022);
+    }
+
+    .team-list{
+      margin-top:18px;
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:11px;
+    }
+
+    .member{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:11px;
+      border-radius:17px;
+      border:1px solid rgba(255,255,255,.075);
+      background:rgba(255,255,255,.035);
+    }
+
+    .member-avatar{
+      width:34px;
+      height:34px;
+      flex:0 0 auto;
+      display:grid;
+      place-items:center;
+      border-radius:13px;
+      color:#06110c;
+      background:linear-gradient(135deg,#eafff1,#5af29b);
+      font-size:12px;
+      font-weight:900;
+    }
+
+    .member b{
+      display:block;
+      font-size:13px;
+    }
+
+    .member span{
+      display:block;
+      margin-top:3px;
+      color:var(--muted);
+      font-size:11px;
+    }
+
+    .robot-info-visual{
+      margin-top:18px;
+      overflow:hidden;
+      border-radius:20px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.035);
+    }
+
+    .robot-info-visual img{
+      width:100%;
+      max-height:430px;
+      display:block;
+      object-fit:contain;
+      background:#f8faf8;
+    }
+
+    .robot-info-caption{
+      padding:12px 14px;
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.5;
+      border-top:1px solid rgba(255,255,255,.075);
+    }
+
+    .leaflet-container{font-family:inherit}
+    .leaflet-control-zoom a{background:rgba(9,15,14,.92)!important;color:#eafff1!important;border-color:rgba(255,255,255,.1)!important}
+    .leaflet-control-attribution{display:none}
+    .detection-list::-webkit-scrollbar,.messages::-webkit-scrollbar{width:6px}
+    .detection-list::-webkit-scrollbar-thumb,.messages::-webkit-scrollbar-thumb{background:rgba(90,242,155,.35);border-radius:999px}
+
+    @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.55;transform:scale(.82)}}
+    @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+    .panel,.kpi,.topbar{animation:rise .55s ease both}
+    .kpi:nth-child(2){animation-delay:.04s}.kpi:nth-child(3){animation-delay:.08s}.kpi:nth-child(4){animation-delay:.12s}
+
+    @media (max-width:1180px){
+      :root{--sidebar:94px}
+      .sidebar{padding:16px 12px}
+      .brand{padding:58px 13px 13px}
+      .brand h1,.brand p,.brand-mark,.nav span,.robot-card{display:none}
+      .brand-row{justify-content:center}
+      .nav button{justify-content:center;padding:0}
+      .menu-btn{top:28px;left:25px;width:42px;height:42px}
+      .layout{
+        grid-template-columns:1fr;
+        grid-template-areas:
+          "video"
+          "detections"
+          "kpis"
+          "charts";
+      }
+      #gpsMap{height:340px}
+      .detection-list{max-height:430px}
+    }
+
+    @media (max-width:760px){
+      .shell{display:block}
+      .sidebar{
+        position:fixed;
+        width:280px;
+        transform:translateX(-105%);
+        transition:.25s ease;
+      }
+      body.sidebar-open .sidebar{transform:translateX(0)}
+      .brand{padding:14px 14px 14px 68px}
+      .brand h1,.brand p,.nav span,.robot-card{display:block}
+      .brand-mark{display:grid}
+      .brand-row{justify-content:flex-start}
+      .nav button{justify-content:flex-start;padding:0 15px}
+      .main{padding:12px}
+      .topbar{padding:14px 14px 14px 72px;align-items:flex-start}
+      .clock,.topbar .status-pill{display:none}
+      .video-box{height:330px}
+      .kpis{grid-template-columns:1fr 1fr}
+      .charts{grid-template-columns:1fr}
+      .assistant{grid-template-columns:1fr}
+      .about{grid-template-columns:1fr}
+      .gps-data{grid-template-columns:1fr}
+      .gps-data div{border-right:0}
+      .gps-data div:nth-last-child(-n+2){border-bottom:1px solid var(--line-2)}
+      .gps-data div:last-child{border-bottom:0}
+    }
+
+    @media (max-width:480px){
+      .kpis{grid-template-columns:1fr}
+      .video-box{height:280px}
+      .detection-card{grid-template-columns:74px 1fr}
+      .detection-card img{width:74px;height:68px}
+      .title h2{font-size:18px}
+    }
+  </style>
+</head>
+<body>
+  <button class="menu-btn" id="menuBtn" aria-label="Afficher ou masquer le menu" aria-expanded="true">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+  </button>
+
+  <div class="shell">
+    <aside class="sidebar" id="sidebar">
+      <section class="brand">
+        <div class="brand-row">
+          <div class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M12 21V8.8" stroke="#eafff1" stroke-width="1.7" stroke-linecap="round"/>
+              <path d="M12 8.9C9 8.7 7.1 6.9 6 3.7c3.7-.2 5.7 1.3 6 5.2Z" fill="#5af29b"/>
+              <path d="M12.2 12.7c3.5-.4 5.8-2.3 7.1-6-4.6-.2-6.9 1.8-7.1 6Z" fill="#7bc8ff" opacity=".82"/>
+              <path d="M12 16.1c-3.4-.2-5.8-1.8-7.3-5 4.3-.5 6.8 1.1 7.3 5Z" fill="#d8ffe9" opacity=".62"/>
+              <circle cx="12" cy="12" r="9.4" stroke="#ffd27a" stroke-width=".55" opacity=".42"/>
+            </svg>
+          </div>
+          <div>
+            <h1>S.P.A.R.K</h1>
+            <p>Smart Plant Analysis<br>Removal Kit</p>
+          </div>
+        </div>
+      </section>
+
+      <nav class="nav" aria-label="Navigation principale">
+        <button class="active" data-target="mission">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-9.5Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+          <span>Mission</span>
+        </button>
+        <button data-target="gps">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 21s7-4.8 7-11a7 7 0 1 0-14 0c0 6.2 7 11 7 11Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2.4" stroke="currentColor" stroke-width="1.8"/></svg>
+          <span>GPS</span>
+        </button>
+        <button data-target="verification">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16v12H4V7Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 7V5h8v2M8 13l2.5 2.5L16 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span>Vérification arrachage</span>
+        </button>
+        <button data-target="assistant">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M6 9a6 6 0 0 1 12 0v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V9Z" stroke="currentColor" stroke-width="1.8"/><path d="M9 12h.01M15 12h.01M10 16h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          <span>Assistant</span>
+        </button>
+        <button data-target="about">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 17v-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 8h.01" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.8"/></svg>
+          <span>À propos</span>
+        </button>
+      </nav>
+
+      <section class="robot-card">
+        <div class="robot-status-grid">
+          <div class="robot-state">
+            <span>Mode</span>
+            <b>Autonome</b>
+          </div>
+          <div class="robot-state">
+            <span>État du robot</span>
+            <b><i class="dot"></i> Actif</b>
+          </div>
+        </div>
+        <div class="robot-visual">
+          <img src="static/spark-robot-cutout.png" alt="Robot S.P.A.R.K en mode autonome">
+        </div>
+        <div class="robot-metrics">
+          <div class="robot-metric">
+            <strong>
+              <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M3 8a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v1h1.5A1.5 1.5 0 0 1 22 10.5v3A1.5 1.5 0 0 1 20.5 15H19v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+                <path d="M6.5 9.5v5h8.5v-5H6.5Z" fill="currentColor" opacity=".65"/>
+              </svg>
+              87%
+            </strong>
+            <span>Batterie</span>
+          </div>
+          <div class="robot-metric">
+            <strong>1.6 <small>cm/s</small></strong>
+            <span>Vitesse</span>
+          </div>
+        </div>
+      </section>
+    </aside>
+
+    <main class="main" id="mission">
+      <header class="topbar glass">
+        <div class="title">
+          <h2>Interface de supervision agricole</h2>
+          <p>Flux vidéo, détections, coordonnées centimétriques, GPS réel et assistant IA.</p>
+        </div>
+        <div class="topbar-spacer"></div>
+        <div class="status-pill"><i class="dot"></i> Système en ligne</div>
+        <div class="clock">
+          <strong id="clock">--:--:--</strong>
+          <span id="dateLabel">Mission S.P.A.R.K</span>
+        </div>
+      </header>
+
+      <section class="layout" id="dashboardLayout">
+        <article class="panel glass video-panel" id="video">
+          <div class="panel-head">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M4 7.5A2.5 2.5 0 0 1 6.5 5h8A2.5 2.5 0 0 1 17 7.5v9a2.5 2.5 0 0 1-2.5 2.5h-8A2.5 2.5 0 0 1 4 16.5v-9Z" stroke="currentColor" stroke-width="1.8"/><path d="m17 10 4-2.5v9L17 14" stroke="currentColor" stroke-width="1.8"/></svg>
+            <h3>Flux vidéo robot</h3>
+            <div class="live"><i></i> LIVE</div>
+          </div>
+          <div class="video-box">
+            <img src="/video_feed" alt="Flux vidéo du robot">
+            <div class="video-overlay">
+              <span class="chip">YOLOv8 Nano</span>
+              <span class="chip">640×480</span>
+              <span class="chip">Seuil 50%</span>
+              <span class="chip">Conversion cm active</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel glass map-panel" id="gps">
+          <div class="panel-head">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M12 21s7-4.8 7-11a7 7 0 1 0-14 0c0 6.2 7 11 7 11Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="10" r="2.4" stroke="currentColor" stroke-width="1.8"/></svg>
+            <h3>Localisation GPS</h3>
+            <small>Temps réel</small>
+          </div>
+          <div id="gpsMap"></div>
+          <div class="gps-data">
+            <div><span>Latitude</span><b id="lat">--</b></div>
+            <div><span>Longitude</span><b id="lng">--</b></div>
+            <div><span>Dernier signal</span><b id="gpsTime">--</b></div>
+            <div><span>Points GPS</span><b id="gpsPoints">0</b></div>
+          </div>
+        </article>
+
+        <section class="kpis">
+          <div class="kpi glass">
+            <span>Mauvaises herbes</span>
+            <strong id="kpiPlants">0</strong>
+            <em>coordonnées détectées</em>
+          </div>
+          <div class="kpi glass">
+            <span>Captures</span>
+            <strong id="kpiCaptures">0</strong>
+            <em>images enregistrées</em>
+          </div>
+          <div class="kpi glass">
+            <span>Confiance moyenne</span>
+            <strong id="kpiConf">-- <small>%</small></strong>
+            <em>sur les détections</em>
+          </div>
+          <div class="kpi glass">
+            <span>Temps mission</span>
+            <strong id="kpiTime">00:00:00</strong>
+            <em>session active</em>
+          </div>
+        </section>
+
+        <section class="charts">
+          <article class="panel glass">
+            <div class="panel-head">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M5 19V5M5 19h14M8 15l3-4 3 2 4-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <h3>Carte des mauvaises herbes</h3>
+              <small>cm caméra</small>
+            </div>
+            <div class="chart-wrap"><canvas id="weedChart"></canvas></div>
+          </article>
+
+          <article class="panel glass">
+            <div class="panel-head">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M4 17c4 0 3-10 8-10s4 10 8 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M4 20h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              <h3>Trajet estimé</h3>
+              <small>3 segments</small>
+            </div>
+            <div class="chart-wrap"><canvas id="missionChart"></canvas></div>
+          </article>
+        </section>
+
+        <article class="panel glass detections" id="detections">
+          <div class="panel-head">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M4 5h16v14H4V5Z" stroke="currentColor" stroke-width="1.8"/><path d="M8 9h8M8 13h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+            <h3>Historique des détections</h3>
+            <small id="historyCount">0</small>
+          </div>
+          <div class="detection-list" id="detectionList">
+            <div class="empty">En attente des premières mauvaises herbes détectées par YOLOv8.</div>
+          </div>
+        </article>
+
+        <article class="panel glass verification" id="verification">
+          <div class="panel-head">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M4 7h16v12H4V7Z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M8 7V5h8v2M8 13l2.5 2.5L16 10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <h3>Vérification arrachage</h3>
+            <small id="verificationCount">0</small>
+          </div>
+          <div class="verification-grid" id="verificationList">
+            <div class="empty">Les captures de vérification apparaîtront ici après les opérations du robot.</div>
+          </div>
+        </article>
+
+        <section class="assistant" id="assistant">
+          <article class="ai-intro glass">
+            <div class="ai-orb">
+              <svg width="29" height="29" viewBox="0 0 24 24" fill="none"><path d="M6 9a6 6 0 0 1 12 0v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V9Z" stroke="#5af29b" stroke-width="1.8"/><path d="M9 12h.01M15 12h.01M10 16h4" stroke="#7bc8ff" stroke-width="2" stroke-linecap="round"/></svg>
+            </div>
+            <div>
+              <h3>Assistant IA du robot</h3>
+              <p>Posez une question sur la détection, la caméra, les coordonnées, le bras robotique ou le trajet.</p>
+            </div>
+          </article>
+
+          <article class="chat glass">
+            <div class="messages" id="messages">
+              <div class="message">Bonjour, je suis l’assistant S.P.A.R.K. Je peux expliquer le fonctionnement du robot et résumer les détections.</div>
+            </div>
+            <div class="suggestions">
+              <button type="button" data-question="Comment fonctionne la détection ?">Détection</button>
+              <button type="button" data-question="Comment sont calculées les coordonnées ?">Coordonnées</button>
+              <button type="button" data-question="Explique le trajet du robot.">Trajet</button>
+              <button type="button" data-question="Parle-moi du bras robotique.">Bras robotique</button>
+            </div>
+            <form class="chat-form" id="chatForm">
+              <input id="chatInput" type="text" placeholder="Posez votre question..." autocomplete="off">
+              <button type="submit" aria-label="Envoyer">
+                <svg width="21" height="21" viewBox="0 0 24 24" fill="none"><path d="M21 3 10 14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="m21 3-7 18-4-7-7-4 18-7Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+              </button>
+            </form>
+          </article>
+        </section>
+
+        <section class="about" id="about">
+          <article class="about-card glass">
+            <h3>
+              <svg viewBox="0 0 24 24" fill="none"><path d="M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM16 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM4 20a4 4 0 0 1 8 0M12 20a4 4 0 0 1 8 0" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              Équipe projet
+            </h3>
+            <div class="team-list">
+              <div class="member"><div class="member-avatar">AA</div><div><b>AHIDAR Adil</b><span>Encadrant</span></div></div>
+              <div class="member"><div class="member-avatar">DI</div><div><b>DALI ilyass</b><span>Équipe projet</span></div></div>
+              <div class="member"><div class="member-avatar">IZ</div><div><b>IMAD zouhair</b><span>Équipe projet</span></div></div>
+              <div class="member"><div class="member-avatar">CM</div><div><b>CHBAB mohammed</b><span>Équipe projet</span></div></div>
+              <div class="member"><div class="member-avatar">DI</div><div><b>DRIDI ines</b><span>Équipe projet</span></div></div>
+              <div class="member"><div class="member-avatar">MF</div><div><b>MLOUKI fatima ezzahra</b><span>Équipe projet</span></div></div>
+            </div>
+          </article>
+
+          <article class="about-card glass">
+            <h3>
+              <svg viewBox="0 0 24 24" fill="none"><path d="M5 17V9a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M8 17v2M16 17v2M9 11h6M9 14h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M7 7 5 4M17 7l2-3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+              Informations sur le robot
+            </h3>
+            <div class="robot-info-visual">
+              <img src="static/robot-sensors-modules.png" alt="Capteurs et modules du robot S.P.A.R.K">
+              <div class="robot-info-caption">Le robot SPARK (Adeept PiCar Pro V2, Raspberry Pi 4B, camera HD, buzzer) patrouille de facon autonome dans des champs de tomates. Il detecte les mauvaises herbes via YOLOv8 (PC distant en WiFi, port 9999), s'arrete, centre la cible par IBVS (erreur inferieure a 30 px), puis l'arrache avec son bras articule avant de reprendre son trajet.</div>
+            </div>
+          </article>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const qs = selector => document.querySelector(selector);
+    const qsa = selector => Array.from(document.querySelectorAll(selector));
+    const missionStart = Date.now();
+    const gpsTrail = [];
+    const weedPoints = [];
+    const missionPath = [{x:0,y:0},{x:75,y:0},{x:75,y:60},{x:5,y:60}];
+
+    let gpsMap;
+    let gpsMarker;
+    let gpsLine;
+    let weedChart;
+    let missionChart;
+
+    function escapeHtml(value){
+      return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+      }[char]));
+    }
+
+    function formatTime(seconds){
+      const h = String(Math.floor(seconds / 3600)).padStart(2,"0");
+      const m = String(Math.floor((seconds % 3600) / 60)).padStart(2,"0");
+      const s = String(seconds % 60).padStart(2,"0");
+      return `${h}:${m}:${s}`;
+    }
+
+    function updateClock(){
+      const now = new Date();
+      qs("#clock").textContent = now.toLocaleTimeString("fr-FR");
+      qs("#dateLabel").textContent = now.toLocaleDateString("fr-FR", {day:"2-digit", month:"long", year:"numeric"});
+      qs("#kpiTime").textContent = formatTime(Math.floor((Date.now() - missionStart) / 1000));
+      updateMissionProgress();
+    }
+
+    function progressPoint(){
+      const speedCmPerSecond = 10;
+      const elapsed = Math.floor((Date.now() - missionStart) / 1000);
+      let distance = Math.min(elapsed * speedCmPerSecond, 205);
+      const segments = [
+        {from:{x:0,y:0}, to:{x:75,y:0}, len:75},
+        {from:{x:75,y:0}, to:{x:75,y:60}, len:60},
+        {from:{x:75,y:60}, to:{x:5,y:60}, len:70}
+      ];
+      for(const segment of segments){
+        if(distance <= segment.len){
+          const ratio = distance / segment.len;
+          return {
+            x: segment.from.x + (segment.to.x - segment.from.x) * ratio,
+            y: segment.from.y + (segment.to.y - segment.from.y) * ratio
+          };
+        }
+        distance -= segment.len;
+      }
+      return {x:5,y:60};
+    }
+
+    function initCharts(){
+      const grid = "rgba(255,255,255,.08)";
+      const muted = "#91a39b";
+
+      weedChart = new Chart(qs("#weedChart"), {
+        type:"scatter",
+        data:{
+          datasets:[{
+            label:"Mauvaises herbes",
+            data:weedPoints,
+            pointRadius:6,
+            pointHoverRadius:9,
+            pointBackgroundColor:"#ff775d",
+            pointBorderColor:"rgba(255,255,255,.78)",
+            pointBorderWidth:1
+          }]
+        },
+        options:{
+          responsive:true,
+          maintainAspectRatio:false,
+          plugins:{
+            legend:{display:false},
+            tooltip:{
+              backgroundColor:"#0b1412",
+              borderColor:"rgba(255,255,255,.12)",
+              borderWidth:1,
+              callbacks:{label: context => `X ${context.parsed.x} cm · Y ${context.parsed.y} cm`}
+            }
+          },
+          scales:{
+            x:{min:0,max:23,title:{display:true,text:"X (cm)",color:muted},ticks:{color:muted},grid:{color:grid}},
+            y:{min:0,max:17,title:{display:true,text:"Y (cm)",color:muted},ticks:{color:muted},grid:{color:grid}}
+          }
+        }
+      });
+
+      missionChart = new Chart(qs("#missionChart"), {
+        type:"scatter",
+        data:{
+          datasets:[
+            {
+              label:"Parcours estimé",
+              data:missionPath,
+              showLine:true,
+              borderColor:"#5af29b",
+              backgroundColor:"rgba(90,242,155,.12)",
+              pointBackgroundColor:"#5af29b",
+              pointBorderColor:"#eafff1",
+              pointRadius:4,
+              borderWidth:3,
+              tension:0
+            },
+            {
+              label:"Position estimée",
+              data:[progressPoint()],
+              pointRadius:8,
+              pointHoverRadius:10,
+              pointBackgroundColor:"#7bc8ff",
+              pointBorderColor:"#eafff1",
+              pointBorderWidth:2
+            }
+          ]
+        },
+        options:{
+          responsive:true,
+          maintainAspectRatio:false,
+          plugins:{
+            legend:{labels:{color:muted}},
+            tooltip:{backgroundColor:"#0b1412",borderColor:"rgba(255,255,255,.12)",borderWidth:1}
+          },
+          scales:{
+            x:{min:0,max:82,title:{display:true,text:"Distance X (cm)",color:muted},ticks:{color:muted},grid:{color:grid}},
+            y:{min:0,max:70,title:{display:true,text:"Distance Y (cm)",color:muted},ticks:{color:muted},grid:{color:grid}}
+          }
+        }
+      });
+    }
+
+    function updateMissionProgress(){
+      if(!missionChart) return;
+      missionChart.data.datasets[1].data = [progressPoint()];
+      missionChart.update("none");
+    }
+
+    function initMap(){
+      const defaultPosition = [33.5892, -7.6042];
+      gpsMap = L.map("gpsMap", {zoomControl:true}).setView(defaultPosition, 16);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {maxZoom:19}).addTo(gpsMap);
+      gpsMarker = L.marker(defaultPosition).addTo(gpsMap).bindPopup("<b>PiCar V2 - SPARK</b>").openPopup();
+    }
+
+    async function loadGps(){
+      try{
+        const response = await fetch("/api/get_robot_location", {cache:"no-store"});
+        const data = await response.json();
+        const lat = Number(data.latitude);
+        const lng = Number(data.longitude);
+        if(!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+
+        qs("#lat").textContent = `${lat.toFixed(6)}°`;
+        qs("#lng").textContent = `${lng.toFixed(6)}°`;
+        qs("#gpsTime").textContent = new Date().toLocaleTimeString("fr-FR");
+
+        const position = [lat, lng];
+        gpsMarker.setLatLng(position);
+        gpsMap.panTo(position, {animate:true, duration:.7});
+      }catch(error){}
+    }
+
+    function collectPoints(detections){
+      const points = [];
+      detections.forEach(detection => {
+        const coords = Array.isArray(detection.coords) ? detection.coords : [];
+        coords.forEach(coord => {
+          const x = Number(coord.x_cm);
+          const y = Number(coord.y_cm);
+          const conf = Number(coord.conf);
+          if(Number.isFinite(x) && Number.isFinite(y)){
+            points.push({x, y, conf:Number.isFinite(conf) ? conf : null});
+          }
+        });
+      });
+      return points;
+    }
+
+    function updateKpis(detections, points){
+      const confs = points.map(point => point.conf).filter(value => Number.isFinite(value));
+      const avg = confs.length ? Math.round(confs.reduce((a,b) => a + b, 0) / confs.length) : null;
+      qs("#kpiPlants").textContent = points.length;
+      qs("#kpiCaptures").textContent = detections.length;
+      qs("#historyCount").textContent = detections.length;
+      qs("#kpiConf").innerHTML = avg === null ? `-- <small>%</small>` : `${avg} <small>%</small>`;
+    }
+
+    function detectionImage(name){
+      if(!name) return "";
+      return `/screenshot/${encodeURIComponent(name)}`;
+    }
+
+    function verificationImage(detection){
+      const name = detection.verification_image || detection.after_image || detection.arrachage_image || detection.image_after || detection.image;
+      return detectionImage(name);
+    }
+
+    function renderDetections(detections){
+      const list = qs("#detectionList");
+      if(!detections.length){
+        list.innerHTML = `<div class="empty">En attente des premières mauvaises herbes détectées par YOLOv8.</div>`;
+        return;
+      }
+
+      list.innerHTML = detections.slice(0,20).map(detection => {
+        const coords = Array.isArray(detection.coords) ? detection.coords : [];
+        const coordsHtml = coords.map(coord => {
+          const x = Number(coord.x_cm);
+          const y = Number(coord.y_cm);
+          const conf = Number(coord.conf);
+          return `<span class="coord">X ${Number.isFinite(x) ? x : "--"} · Y ${Number.isFinite(y) ? y : "--"} · ${Number.isFinite(conf) ? conf : "--"}%</span>`;
+        }).join("");
+
+        const image = detectionImage(detection.image);
+        const conseil = detection.conseil || "Cible détectée, coordonnées disponibles pour le bras robotique.";
+        const timestamp = detection.timestamp || "--:--:--";
+        const id = detection.id ?? "";
+
+        return `
+          <article class="detection-card">
+            ${image ? `<img src="${image}" alt="Détection ${escapeHtml(id)}">` : `<img alt="Détection">`}
+            <div>
+              <h4>Mauvaise herbe détectée ${id ? `#${escapeHtml(id)}` : ""}</h4>
+              <p>${coords.length} coordonnée${coords.length > 1 ? "s" : ""} calculée${coords.length > 1 ? "s" : ""} en centimètres.</p>
+              <div class="coord-row">${coordsHtml || `<span class="coord">Coordonnées indisponibles</span>`}</div>
+              <div class="advice">${escapeHtml(conseil)}</div>
+              <time>${escapeHtml(timestamp)}</time>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function renderVerification(detections){
+      const list = qs("#verificationList");
+      const count = qs("#verificationCount");
+      // Chargement des photos de verification depuis le dossier dédié
+      fetch("/verifications", {cache:"no-store"})
+        .then(r => r.json())
+        .then(photos => {
+          if(count) count.textContent = photos.length;
+          if(!photos.length){
+            list.innerHTML = `<div class="empty">Les captures de vérification apparaîtront ici après les opérations du robot.</div>`;
+            return;
+          }
+          list.innerHTML = photos.map((photo, i) => `
+            <article class="verification-card">
+              <img src="/verification_img/${encodeURIComponent(photo.name)}" alt="Vérification ${i+1}">
+              <div class="verification-body">
+                <h4>Vérification #${i+1}</h4>
+                <p>Contrôle visuel après intervention du robot.</p>
+                <span class="verification-status"><i class="dot"></i> ${photo.time}</span>
+              </div>
+            </article>
+          `).join("");
+        }).catch(() => {});
+    }
+
+    async function loadDetections(){
+      try{
+        const response = await fetch("/detections", {cache:"no-store"});
+        const detections = await response.json();
+        const safeDetections = Array.isArray(detections) ? detections : [];
+        const points = collectPoints(safeDetections);
+
+        weedPoints.length = 0;
+        points.forEach(point => weedPoints.push({x:point.x, y:point.y}));
+
+        updateKpis(safeDetections, points);
+        renderDetections(safeDetections);
+        renderVerification(safeDetections);
+        if(weedChart) weedChart.update("none");
+      }catch(error){}
+    }
+
+    function addMessage(text, isUser = false){
+      const messages = qs("#messages");
+      const div = document.createElement("div");
+      div.className = `message${isUser ? " user" : ""}`;
+      div.textContent = text;
+      messages.appendChild(div);
+      messages.scrollTop = messages.scrollHeight;
+      return div;
+    }
+
+    async function sendChat(message){
+      addMessage(message, true);
+      const typing = addMessage("Analyse en cours...");
+      try{
+        const response = await fetch("/chat", {
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({message})
+        });
+        const data = await response.json();
+        typing.textContent = data.reponse || data.response || "Réponse reçue.";
+      }catch(error){
+        typing.textContent = "Assistant indisponible pour le moment.";
+      }
+    }
+
+    function initUi(){
+      const menuBtn = qs("#menuBtn");
+      const isMobileMenu = () => window.matchMedia("(max-width: 760px)").matches;
+
+      menuBtn.addEventListener("click", () => {
+        if(isMobileMenu()){
+          const opened = document.body.classList.toggle("sidebar-open");
+          menuBtn.setAttribute("aria-expanded", opened ? "true" : "false");
+          return;
+        }
+
+        const collapsed = document.body.classList.toggle("sidebar-collapsed");
+        menuBtn.setAttribute("aria-expanded", collapsed ? "false" : "true");
+        setTimeout(() => gpsMap && gpsMap.invalidateSize(), 320);
+      });
+
+      qsa(".nav button").forEach(button => {
+        button.addEventListener("click", () => {
+          qsa(".nav button").forEach(item => item.classList.remove("active"));
+          button.classList.add("active");
+          const targetName = button.dataset.target;
+          const target = qs(`#${targetName}`);
+          const layout = qs("#dashboardLayout");
+
+          layout.classList.remove("focus-gps", "focus-verification", "focus-assistant", "focus-about");
+          if(targetName === "gps"){
+            layout.classList.add("focus-gps");
+            layout.scrollIntoView({behavior:"smooth", block:"start"});
+          }else if(targetName === "verification"){
+            layout.classList.add("focus-verification");
+            layout.scrollIntoView({behavior:"smooth", block:"start"});
+          }else if(targetName === "assistant"){
+            layout.classList.add("focus-assistant");
+            layout.scrollIntoView({behavior:"smooth", block:"start"});
+          }else if(targetName === "about"){
+            layout.classList.add("focus-about");
+            layout.scrollIntoView({behavior:"smooth", block:"start"});
+          }else if(target){
+            target.scrollIntoView({behavior:"smooth", block:"start"});
+          }
+
+          document.body.classList.remove("sidebar-open");
+          menuBtn.setAttribute("aria-expanded", isMobileMenu() ? "false" : "true");
+          setTimeout(() => gpsMap && gpsMap.invalidateSize(), 260);
+        });
+      });
+
+      qsa(".suggestions button").forEach(button => {
+        button.addEventListener("click", () => sendChat(button.dataset.question));
+      });
+
+      qs("#chatForm").addEventListener("submit", event => {
+        event.preventDefault();
+        const input = qs("#chatInput");
+        const message = input.value.trim();
+        if(!message) return;
+        input.value = "";
+        sendChat(message);
+      });
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      initUi();
+      initCharts();
+      initMap();
+      updateClock();
+      loadGps();
+      loadDetections();
+      setInterval(updateClock, 1000);
+      setInterval(loadGps, 5000);
+      setInterval(loadDetections, 4000);
+    });
+  </script>
+</body>
+</html>
