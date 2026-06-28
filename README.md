@@ -1,11 +1,11 @@
 <table>
   <tr>
     <td>
-      <h1>🌾 SPARK (Smart Pratics Automatique Removal Kits)</h1>
+      <h1>🌾 SPARK (Smart Plant Analysis Removal Kit)</h1>
       <blockquote>Détection automatique et élimination ciblée de mauvaises herbes par robot mobile via vision artificielle YOLOv8, asservissement visuel (IBVS) et application web Flask.</blockquote>
     </td>
-    <td align="right" valign="top">
-      <img src="images/detection-logo.png" width="180" alt="Logo École Centrale Casablanca"/>
+    <td align="center" valign="middle">
+      <img src="images/detection-logo.png" width="180" alt="Logo SPARK — École Centrale Casablanca"/>
     </td>
   </tr>
 </table>
@@ -13,8 +13,8 @@
 ---
 
 ## 👥 Équipe du Projet (PLBD 25)
-* **Membres de l'équipe :** Zouhair Imad, Ilyass Dali, Fatima Ezzahra Mlouki, Mohammed Chbab, Inas Dridi
-* **Encadrant :** M.Adil Ahidar
+* **Membres de l'équipe :** Zouhair Imad, Ilyass Dali, Fatima Ezzahra Mlouki, Mohammed Chbab, Ines Dridi
+* **Encadrant :** M. Adil Ahidar
 * **Institution :** École Centrale Casablanca
 * **Année universitaire :** 2026
 * **Cible marché :** Agriculteurs possédant des champs de tomates
@@ -27,7 +27,7 @@ Le robot SPARK s'appuie sur la plateforme matérielle **Adeept PiCar Pro V2 Smar
 2. **L'action :** Élimination physique localisée de la mauvaise herbe à l'aide d'une pince montée sur son bras articulé.
 
 <p align="center">
-  <img src="images/robot-picar.png" width="550" alt="Robot SPARK PiCar Pro V2"/>
+  <img src="images/photo_robot.jpeg" width="550" alt="Robot SPARK PiCar Pro V2"/>
 </p>
 
 ---
@@ -35,7 +35,7 @@ Le robot SPARK s'appuie sur la plateforme matérielle **Adeept PiCar Pro V2 Smar
 ## 📱 QR Code — Accès au Site Web
 
 <p align="center">
-  <img src="images/qr code .png" width="200" alt="QR Code Accès Interface Web"/>
+  <img src="images/qr%20code%20version%20final.png" width="200" alt="QR Code Accès Interface Web"/>
   <br/>
   <b>Scanner pour accéder au tableau de bord en direct</b>
 </p>
@@ -45,7 +45,7 @@ Le robot SPARK s'appuie sur la plateforme matérielle **Adeept PiCar Pro V2 Smar
 ## 🌐 Architecture Réseau et Communication du Système
 
 <p align="center">
-  <img src="images/architecture-systeme.png" width="600" alt="Architecture de communication WiFi SPARK"/>
+  <img src="images/shema%20architecture%20reseau%20et%20communication.png" width="600" alt="Architecture de communication WiFi SPARK"/>
   <br/>
   <b>Diagramme des flux d'échange de données en temps réel entre le Robot et le PC</b>
 </p>
@@ -54,92 +54,138 @@ Le robot SPARK s'appuie sur la plateforme matérielle **Adeept PiCar Pro V2 Smar
 
 ## 📁 Architecture Logicielle du Répertoire
 
-| Fichier / Répertoire | Description |
-| :--- | :--- |
-| `robot_client.py` | Code embarqué Raspberry Pi — capture vidéo, envoi des frames, gestion des moteurs et du buzzer. |
-| `web_app_2.py` | Serveur central PC — Flask, exécution du modèle YOLOv8 en temps réel, streaming et interface utilisateur. |
-| `yolov8n.pt` | Fichier de poids pré-entraînés YOLOv8 nano optimisé pour la détection des mauvaises herbes. |
-| `train.py` | Script d'entraînement initial du modèle de vision artificielle (Roboflow dataset). |
-| `templates/index.html` | Interface web de supervision — live stream, détections, graphe et panneau d'assistance. |
-| `donnes_projet.json` | Base de connaissances et configuration dynamique lue par l'assistant virtuel. |
+| Fichier / Répertoire | Emplacement | Description |
+| :--- | :--- | :--- |
+| `robot_agri_34.py` | 🔴 Raspberry Pi (Robot) | Code embarqué principal : capture vidéo, envoi des frames au PC via socket TCP/IP, pilotage des moteurs de propulsion, du bras articulé (servomoteurs), des switches d'arrachage et du buzzer. Contient le scénario complet de patrouille, de centrage et d'arrachage. |
+| `web_app_10.py` | 🖥️ PC (Station de calcul) | Serveur central **Flask** : réception des frames, exécution du modèle YOLOv8 en temps réel, streaming vidéo annoté, conversion pixels → cm, tableau de bord web, route GPS et chatbot Gemini. Sert la page `templates/index_10.html`. |
+| `yolov8n.pt` | 🖥️ PC | Poids du modèle **YOLOv8 Nano** servant de base de transfert pour l'entraînement sur le jeu de données de mauvaises herbes. |
+| `train.py` | 🖥️ PC | Script d'entraînement du modèle de vision (Ultralytics YOLOv8, dataset Roboflow, 50 epochs, image 640×640, CPU). Produit le modèle spécialisé `best.pt`. |
+| `templates/index_10.html` | 🖥️ PC | Interface web de supervision : live stream, historique des détections, KPIs, graphes (carte des herbes + trajet rectiligne à 1 segment), carte GPS Leaflet, panneau de vérification d'arrachage et assistant conversationnel. |
+| `donnes_projet.json` | 🖥️ PC | Base de connaissances structurée du projet, lue dynamiquement par l'assistant virtuel (Gemini) pour répondre de façon contextuelle. |
+| `robot_test_recuperation_18.py` | 🔴 Raspberry Pi (Robot) | Script de **test/apprentissage de la récupération d'objet** : détection d'un objet repère par couleur (HSV), centrage horizontal du bras (Servo 1) puis séquence fixe de préhension. A servi à calibrer la cinématique de la pince avant l'intégration finale. |
+
+> 🔢 **Lecture des numéros de version :** les chiffres dans les noms de fichiers correspondent au nombre d'essais réalisés sur chaque sous-système :
+> * **34** → 34 essais pour l'action du robot (`robot_agri_34.py`)
+> * **18** → 18 essais pour l'apprentissage de la récupération d'objet (`robot_test_recuperation_18.py`)
+> * **10** → 10 essais pour le site et son interface (`web_app_10.py` / `index_10.html`)
+>
+> **Soit un total de 62 essais** menés jusqu'à la dernière version du système. 🚀
 
 ---
 
 ## ⚙️ Démarche Chronologique & Algorithmique du Trajet
 
-### 🏁 Phase 1 : Initialisation et calibration
-Avant d'effectuer le moindre mouvement, le robot configure l'ensemble de ses périphériques matériels :
-* **Mise en position zéro :** Tous les servomoteurs (de 0 à 7) sont positionnés à leur angle neutre de 90°.
-* **Extinction des actionneurs :** Tous les relais ou interrupteurs électroniques (`sw.set_all_switch_off()`) sont désactivés par sécurité.
-* **Établissement des connexions :** Le Raspberry Pi ouvre un canal de communication TCP/IP (Socket) avec le PC distant (`PC_IP:9999`) et initialise le flux de sa caméra en résolution $640 \times 480$ pixels.
+Voici le scénario réel exécuté par le robot, tel qu'il est codé dans `robot_agri_34.py` :
 
-### 🛣️ Phase 2 : Exécution du parcours géométrique théorique
-Une fois connecté, le robot lance son fil conducteur principal dans un thread séparé (`t_trajet`). Ce trajet est une boucle ouverte temporelle qui simule un parcours en "S" ou en boucle dans le champ de tomates :
-* **Déploiement du bras (Position de travail) :** Le robot oriente son bras articulé vers le sol pour préparer la caméra embarquée à filmer la piste :
-  * Le Servo 1 (axe horizontal) bascule à 145°.
-  * Le Servo 2 (axe vertical) s'abaisse à 130°.
-* **Premier segment rectiligne :** Le robot active ses moteurs de propulsion pour avancer de 75 cm.
-* **Premier virage :** Les roues directrices s'orientent à gauche (Servo 0 à 45°) et le robot effectue une rotation continue pendant 19 secondes.
-* **Deuxième segment rectiligne :** Le robot se remet en ligne droite et avance de 60 cm.
-* **Deuxième virage :** Le robot tourne à nouveau à gauche pendant 19 secondes.
-* **Troisième segment rectiligne :** Le robot avance de 70 cm pour terminer sa boucle.
+```text
+ 1. Position de travail (Servo1 = 135°, Servo2 = 125°)
+ 2. Robot avance en continu (moteurs ON, vitesse 5)
+ 3. Caméra envoie les frames → le PC répond via YOLOv8
 
-### 👁️ Phase 3 : L'Interruption Prioritaire (Détection d'une mauvaise herbe)
+ ─── En attente de détection... ───
 
-Pendant que le robot avance sur les segments rectilignes de la Phase 2, une boucle d'écoute infinie surveille en continu le retour des analyses du modèle YOLOv8 envoyé par le PC. Si le PC renvoie des coordonnées valides (la plante est détectée), la démarche du robot change instantanément :
+ 4. DÉTECTION !  → Moteurs STOP
+ 5. ⛔ Modèle DÉSACTIVÉ (desherbage_actif = True)
+ 6. Pause 2 s
 
-* 🚜 **[Robot en mouvement]**
-  * 🔽 *Une mauvaise herbe est détectée !*
-  * 🛑 **[Arrêt immédiat des moteurs]** → `move.motorStop()`
-  * 🔄 **[Lancement de la boucle IBVS]** *(Thread parallèle)*
-  * 🎯 **[Correction fine du bras]** → Ajustement itératif des servos 1, 2 et 3
-  * 📉 **[Convergence]** → Erreur < 30 pixels
-  * 🦾 **[Séquence d'arrachage physique]** → Ouverture/Fermeture des pinces + Outils
-  * 👁️ **[Réactivation de la détection]**
-  * 🔄 **[Reprise du trajet initial]** → Les moteurs redémarrent là où ils s'étaient arrêtés.
+ 7. CENTRAGE IBVS (repère couleur)
+    → max 40 itérations × 0.5 s
+    → ajuste Servo1 jusqu'à erreur < 30 px (3× confirmé)
 
-### 🛠️ Phase 4 : L'action mécanique d'élimination
-Dès que l'erreur visuelle passe sous le seuil de tolérance requis ($SEUIL_X = 30$, $SEUIL_Y = 30$), la fonction `arracher()` prend le relais :
-* **Alerte sonore :** Le buzzer émet un signal (note C4 pendant 1 seconde) pour notifier l'action.
-* **Actionnement des pinces :** Le Servo 4 s'ouvre à 130° (ouverture des dents) puis se referme à 80° pour saisir l'herbe.
-* **Activation de l'outil d'extraction :** Les interrupteurs électriques 1 et 2 (`sw.switch`) s'allument pendant 0,8 seconde pour alimenter l'outil physique d'élimination, puis se coupent.
-* **Repli de sécurité :** Le bras se relève et se repositionne en configuration de sécurité pour ne pas racler le sol pendant le déplacement.
-* **Signal de reprise :** Le robot envoie une requête HTTP `/activer_detection` à l'application web pour vider la mémoire de capture de l'écran, les moteurs redémarrent, et le robot reprend son trajet initial.
+ 8. ARRACHAGE :
+    • Servo4 → 130° (ouvre la pince) ............ 1 s
+    • Servo2 → 170°, Servo3 → 130° (descend) .... 1.5 s
+    • Servo4 → 70°  (ferme la pince) ............ 1 s
+    • Switch 1 & 2 ON 0.8 s → OFF
+    • Servo2 → 90°, Servo3 → 90° (remonte) ...... 1.5 s
+    • Servo4 → 170° ............................. 2 s
+    • Servo4 → 90° .............................. 2 s
+    • Buzzer C4 🔔 .............................. 0.8 s
 
-### 🏁 Phase 5 : Fin de mission
-Une fois les distances théoriques épuisées (les 70 cm du dernier segment accomplis), le script appelle `position_initiale()` : les moteurs s'arrêtent définitivement, le bras se remet au repos complet (tous les servos à 90°) et le terminal affiche `"Mission terminee !"`.
+ 9. Bras → position de travail (S1 = 135°, S2 = 125°)
+10. 📸 Capture photo → envoi au PC (/save_verification)
+11. Pause 2 s
 
----
+12. POSITION INITIALE (tous les servos à 90°, moteurs OFF)
+13. Pause 1 s
 
-## 📐 Le principe de l'Asservissement Visuel (IBVS)
+14. ⏳ ATTENTE 15 s (modèle toujours désactivé : aucune détection
+    pendant cette période, rien à voir dans le live)
 
-Contrairement à un automatisme classique où l'on donnerait des coordonnées géométriques fixes, l'asservissement visuel utilise la caméra comme un **capteur de position en temps réel**. Le robot ajuste ses mouvements en fonction de ce qu'il voit à l'écran jusqu'à ce que l'image observée corresponde parfaitement à l'objectif visé.
+15. Retour à l'état initial → ✅ Modèle RÉACTIVÉ (desherbage_actif = False)
+16. Envoi de /activer_detection au PC → nouveau cycle
+```
 
-### 🔄 La boucle de rétroaction appliquée au robot
-Lorsque le robot intercepte une mauvaise herbe, il fige ses roues et engage la boucle de rétroaction visuelle (`boucle_ibvs`) pour amener l'outil d'arrachage pile au-dessus de la cible :
+### 🛣️ Le trajet rectiligne et son modèle temporel
 
-1. **Mesure de l'erreur en pixels :** Le programme connaît le centre idéal de l'image (qui correspond à l'alignement parfait de l'outil d'arrachage), soit $CX = 320$ et $CY = 240$ pixels. Dès que YOLOv8 détecte une herbe à une position ($cx, cy$), l'écart (l'erreur visuelle) est calculé :
+Le robot parcourt une **trajectoire rectiligne unique** (un seul segment, cohérent avec `robot_agri_34.py` et l'affichage « Trajet estimé » de l'interface). Il avance à une vitesse de croisière de **1,6 cm/s**.
 
-$$\text{Erreur}_X = cx - 320$$
+> 💡 **Oui, cette vitesse est volontairement faible.** C'est le résultat de nombreux essais successifs : nous avons cherché expérimentalement la **bonne vitesse** qui garantit à la fois une **détection fiable** des mauvaises herbes et un **arrachage précis** par le bras. Une vitesse plus élevée dégradait la qualité de la détection et le centrage de l'outil.
 
-$$\text{Erreur}_Y = cy - 240$$
+Le temps total mis par le robot pour parcourir une distance **d** se décompose en deux contributions :
 
-2. **Commande proportionnelle des servomoteurs :** Pour annuler cette erreur, le Raspberry Pi applique des gains qui traduisent l'écart en pixels en un angle de rotation pour les moteurs :
-   * **Servo 1 (Axe Horizontal) :** Si l'herbe est trop à droite ($\text{Erreur}_X > 0$), l'angle du Servo 1 augmente proportionnellement pour faire pivoter le bras vers la droite.
-   * **Servo 2 (Axe Vertical) :** Si l'herbe est trop basse sur l'image ($\text{Erreur}_Y > 0$), le Servo 2 s'abaisse pour rapprocher la caméra et l'outil du sol.
-   * **Servo 3 (Profondeur) :** Il aide à ajuster l'extension du bras pour parfaire l'approche spatiale.
+$$T(d, N) = t_0 + t_1 = \frac{d}{v} + \sum_{i=1}^{N} \tau_i \approx \frac{d}{v} + N \cdot \bar{\tau}$$
 
-3. **Stabilisation et validation (Convergence) :** Le bras bouge légèrement, puis le robot **attend 0,6 seconde** pour que l'image ne soit pas floue. Il reprend une capture d'image, recalcule l'erreur, et ajuste à nouveau les servos. Ce cycle se répète jusqu'à un maximum de 15 fois jusqu'à ce que l'erreur devienne inférieure à 30 pixels.
+où :
+* **t₀ = d / v** : le temps de déplacement « pur », sans détection de mauvaise herbe (v = 1,6 cm/s) ;
+* **t₁ = N · τ̄** : le temps cumulé des interventions, avec **N** le nombre de mauvaises herbes rencontrées et **τ̄** la durée moyenne d'une intervention complète (arrêt + centrage IBVS + arrachage + vérification + attente de 15 s + réactivation).
+
+À partir des temporisations du code, une intervention dure :
+
+$$\bar{\tau} \approx \underbrace{2}_{\text{pause}} + \underbrace{t_{\text{centrage}}}_{\le\,20\,\text{s}} + \underbrace{10{,}6}_{\text{arrachage}} + \underbrace{3}_{\text{vérif.}} + \underbrace{1}_{\text{init.}} + \underbrace{15}_{\text{attente}} \;\approx\; 40\ \text{s}$$
+
+#### 📐 Exemple concret
+Pour un segment de **d = 205 cm** avec **N = 3** mauvaises herbes détectées :
+
+* t₀ = 205 / 1,6 ≈ **128 s** (≈ 2 min 08 s)
+* t₁ = 3 × 40 ≈ **120 s** (≈ 2 min 00 s)
+* **T ≈ 248 s ≈ 4 min 08 s**
+
+Le robot boucle ainsi son parcours dans l'enveloppe de la mission (7 minutes) tout en traitant chaque mauvaise herbe rencontrée.
 
 <p align="center">
-  <img src="images/courbe-convergence.png" width="550" alt="Courbe de convergence IBVS"/>
+  <img src="images/simulation%20trajet%20.gif" width="500" alt="Simulation du trajet du robot SPARK"/>
+  <br/>
+  <b>Simulation du comportement cinématique du robot SPARK sur sa trajectoire</b>
 </p>
 
 ---
 
-## 🧠 Spécifications de l'Intelligence Artificielle (YOLOv8)
+## 📐 L'Asservissement Visuel (IBVS) — base de la prise de la cible
 
-Nous avons choisi **YOLOv8** pour notre architecture embarquée :
+Une fois la mauvaise herbe **détectée** et la photo d'analyse **encadrée en rouge** (capture automatique), c'est à **cette étape que le calcul de l'IBVS commence**. L'objectif n'est pas de « ramasser un objet » : l'IBVS sert à amener l'outil d'arrachage exactement sur le **centre de masse de la mauvaise herbe**, situé entre sa **partie inférieure** (près des racines) et sa **partie supérieure** (près de la feuille principale). C'est ce point d'équilibre qui assure un arrachage net, à la racine.
+
+### 🔄 Les relations mathématiques essentielles
+
+**1. Centre de masse de la cible.** À partir des moments de l'image, le centroïde de la zone détectée est :
+
+$$c_x = \frac{m_{10}}{m_{00}}, \qquad c_y = \frac{m_{01}}{m_{00}}$$
+
+Ce centroïde correspond au centre de masse entre les racines (bas) et la feuille principale (haut).
+
+**2. Erreur visuelle (en pixels).** Le centre idéal de l'image (alignement parfait de l'outil) est $C_x = 320$, $C_y = 240$ :
+
+$$e_x = c_x - C_x$$
+
+**3. Loi de commande proportionnelle (IBVS scalaire).** L'angle du servomoteur horizontal est corrigé proportionnellement à l'erreur, puis borné :
+
+$$\theta_{S1}(k+1) = \mathrm{clamp}\Big(\theta_{S1}(k) - K_p \cdot e_x,\; 40°,\; 180°\Big), \qquad K_p = 0{,}08$$
+
+Cette loi est la forme simplifiée à un degré de liberté de l'asservissement visuel basé image :
+
+$$\dot{q} = -\lambda \, L_s^{+} \, (s - s^{*})$$
+
+où $s$ est la primitive visuelle observée (la position du centre de masse), $s^{*}$ la position désirée (le centre de l'image) et $\lambda$ le gain.
+
+**4. Convergence.** Le bras s'ajuste, attend la stabilisation de l'image, puis recalcule. Le cycle se répète (jusqu'à 40 itérations de 0,5 s) jusqu'à ce que l'erreur soit confirmée **inférieure à 30 pixels sur 3 mesures consécutives**.
+
+<p align="center">
+  <img src="images/resultats%20sur%20rasseberry.png" width="600" alt="Résultats de l'asservissement visuel exécuté sur le Raspberry Pi"/>
+  <br/>
+  <b>Résultats de l'exécution de l'IBVS sur le Raspberry Pi</b>
+</p>
+
+### 🧠 Pourquoi YOLOv8 ?
 
 | Critère | YOLOv8 ✅ |
 | :--- | :--- |
@@ -148,38 +194,78 @@ Nous avons choisi **YOLOv8** pour notre architecture embarquée :
 | **Support CPU** | Idéal pour l'inférence continue sur CPU local. |
 | **Compatibilité Pi** | Intégration matérielle testée et fluide. |
 
-### Métriques d'entraînement du modèle
-* **Dataset :** Mauvaises herbes (Roboflow - Liseron des champs, Chénopode blanc)
-* **Nombre d'Epochs :** 50
-* **Taille d'image d'entrée :** $640 \times 640$ pixels
-* **Seuil de confiance minimal :** 0.5
-* **Score mAP50 :** 0.0306
+### 🔁 Chaîne de traitement complète
+
+<p align="center">
+  <img src="images/detection%20dans%20live.png" width="230" alt="Détection dans le live"/>
+  &nbsp;➡️&nbsp;
+  <img src="images/screen%20choot%20automatique.jpg" width="230" alt="Screenshot automatique encadré en rouge"/>
+  &nbsp;➡️&nbsp;
+  <b>⚙️ Action<br/>(application de l'IBVS)</b>
+  &nbsp;➡️&nbsp;
+  <img src="images/verification%20zones%20arrachages.jpg" width="230" alt="Vérification de la zone d'arrachage"/>
+</p>
+
+<p align="center">
+  <b>Détection (live)</b> → <b>Capture automatique (encadrée rouge)</b> → <b>Action IBVS</b> → <b>Vérification d'arrachage</b>
+</p>
 
 ---
 
 ## 🖥️ Tableau de Bord Web & Supervision Intelligente
 
-L'application Flask gère l'interface web utilisateur et l'interaction globale avec le système.
+L'application Flask (`web_app_10.py`) sert une interface de supervision moderne qui va **bien au-delà de la simple détection**.
 
 <p align="center">
-  <img src="images/interface-web.png" width="600" alt="Interface Web de Supervision SPARK"/>
+  <img src="images/interfaces%201.png" width="600" alt="Interface Web SPARK — vue 1"/>
+  <br/>
+  <img src="images/interface%202.png" width="600" alt="Interface Web SPARK — vue 2"/>
+  <br/>
+  <img src="images/interface%203.png" width="600" alt="Interface Web SPARK — vue 3"/>
 </p>
 
+L'interface regroupe le **flux vidéo annoté en direct**, l'**historique des détections** (coordonnées en cm, confiance, captures), des **KPIs** et des **graphes**, ainsi que deux modules clés :
+
 ### 🤖 L'Assistant Virtuel Intelligent (Chatbot AgriBot)
-Intégré directement sur l'interface et relié à la route `/chat`, ce composant permet à l'opérateur ou au jury d'interagir en langage naturel :
-* **Interface conversationnelle :** Zone de saisie fluide avec mémorisation de l'historique local.
-* **Boutons de suggestions rapides (Quick Replies) :** Raccourcis en un clic (`Detection`, `Robot`, `Coordonnées`, `Trajet`).
-* **Intelligence Artificielle contextuelle :** Propulsé par l'API **Gemini 2.5 Flash**, le chatbot est configuré pour agir comme l'expert technique de la solution. Il parcourt dynamiquement la base de données structurée du fichier `donnes_projet.json` pour renvoyer des réponses adaptées et professionnelles en français.
+Relié à la route `/chat`, le chatbot permet à l'opérateur ou au jury d'interagir en langage naturel :
+* **Base de connaissances :** il s'appuie sur le fichier structuré **`donnes_projet.json`** pour ne répondre qu'avec les données réelles du projet.
+* **Moteur d'IA :** propulsé par l'API **Gemini Flash 2.5**, configuré pour agir comme l'expert technique de la solution et répondre en français de façon concise et professionnelle.
+
+### 📍 Localisation GPS en temps réel
+Le robot embarque un **capteur de position : le module GPS NEO-M8N**. Ce module lit en continu sa position et l'envoie au PC, qui la positionne précisément sur la carte (Leaflet) de l'interface.
+
+Vérification simple de la présence du module GPS côté Raspberry Pi :
+
+```python
+import serial
+
+avec = serial.Serial("/dev/ttyS0", baudrate=9600, timeout=1)
+print("GPS Détecté :" if "$" in avec.readline().decode(errors="ignore") else "Non détecté")
+```
+
+Le module communique sur le port série `/dev/ttyS0` (9600 bauds) et émet des trames NMEA (commençant par `$`) que le robot transmet au PC pour un positionnement fidèle sur la carte.
 
 ---
 
-## 🎬 Simulation du Trajet du Robot
+## 🎬 Prototype & Résultats
 
-Aperçu dynamique du comportement cinématique et du suivi de trajectoire du robot SPARK lors de sa patrouille automatisée :
+Démonstrations vidéo du système SPARK en fonctionnement :
+
+### 🦾 Arrachage de la mauvaise herbe
 
 <p align="center">
-  <img src="images/simulation-trajet.gif" width="500" alt="Simulation du trajet du robot SPARK"/>
+  <video src="images/arrachage.mp4" width="600" controls></video>
 </p>
+
+▶️ [Voir la vidéo d'arrachage](images/arrachage.mp4)
+
+### 🌐 Interface web en action
+
+<p align="center">
+  <video src="images/interface%20web.mp4" width="600" controls></video>
+</p>
+
+▶️ [Voir la vidéo de l'interface web](images/interface%20web.mp4)
 
 ---
 
@@ -190,12 +276,12 @@ Aperçu dynamique du comportement cinématique et du suivi de trajectoire du rob
 | **Châssis Robot** | Adeept PiCar Pro V2 |
 | **Calculateur Embarqué** | Raspberry Pi 4B |
 | **Capteur Optique** | Caméra HD USB (Résolution d'acquisition $640 \times 480$) |
-| **Indicateur Sonore** | TonalBuzzer connecté au port GPIO 18 |
-| **Station de Calcul** | PC Windows distant — Inférence YOLOv8 + Serveur Flask |
-| **Réseau de communication** | Protocole WiFi TCP/IP sur le Port Unique `9999` |
+| **Capteur de Position** | Module GPS NEO-M8N (port série `/dev/ttyS0`, 9600 bauds) |
+| **Bras articulé** | 4 servomoteurs (Servo 1 à 4) + pince/dents d'arrachage |
+| **Indicateur Sonore** | TonalBuzzer connecté au GPIO 18 |
+| **Station de Calcul** | PC distant — Inférence YOLOv8 + Serveur Flask |
+| **Réseau de communication** | Protocole WiFi TCP/IP sur le Port `9999` (socket) + Flask sur le port `5000` |
 
 ---
 
 ## 👥 Équipe — Soutenance PLBD_25_
-
----
