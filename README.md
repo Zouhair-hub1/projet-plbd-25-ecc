@@ -196,18 +196,23 @@ où $s$ est la primitive visuelle observée (la position du centre de masse), $s
 
 ### 🔁 Chaîne de traitement complète
 
-<p align="center">
-  <img src="images/detection%20dans%20live.png" width="230" alt="Détection dans le live"/>
-  &nbsp;➡️&nbsp;
-  <img src="images/screen%20choot%20automatique.jpg" width="230" alt="Screenshot automatique encadré en rouge"/>
-  &nbsp;➡️&nbsp;
-  <b>⚙️ Action<br/>(application de l'IBVS)</b>
-  &nbsp;➡️&nbsp;
-  <img src="images/verification%20zones%20arrachages.jpg" width="230" alt="Vérification de la zone d'arrachage"/>
-</p>
+<table>
+  <tr>
+    <td align="center" width="25%"><b>1️⃣ Détection (live)</b></td>
+    <td align="center" width="25%"><b>2️⃣ Capture automatique<br/>(encadrée en rouge)</b></td>
+    <td align="center" width="25%"><b>3️⃣ Action IBVS<br/>+ arrachage</b></td>
+    <td align="center" width="25%"><b>4️⃣ Vérification<br/>d'arrachage</b></td>
+  </tr>
+  <tr>
+    <td align="center"><img src="images/detection%20dans%20live.png" width="210" alt="Détection dans le live"/></td>
+    <td align="center"><img src="images/screen%20choot%20automatique.jpg" width="210" alt="Screenshot automatique encadré en rouge"/></td>
+    <td align="center">⚙️🦾<br/><br/>Centrage du bras sur le<br/>centre de masse de la cible,<br/>puis arrachage à la racine.</td>
+    <td align="center"><img src="images/verification%20zones%20arrachages.jpg" width="210" alt="Vérification de la zone d'arrachage"/></td>
+  </tr>
+</table>
 
 <p align="center">
-  <b>Détection (live)</b> → <b>Capture automatique (encadrée rouge)</b> → <b>Action IBVS</b> → <b>Vérification d'arrachage</b>
+  <b>Détection</b> ➡️ <b>Capture (encadrée rouge)</b> ➡️ <b>Action IBVS</b> ➡️ <b>Vérification</b>
 </p>
 
 ---
@@ -253,19 +258,15 @@ Démonstrations vidéo du système SPARK en fonctionnement :
 
 ### 🦾 Arrachage de la mauvaise herbe
 
-<p align="center">
-  <video src="images/arrachage.mp4" width="600" controls></video>
-</p>
+https://github.com/Zouhair-hub1/projet-plbd-25-ecc/raw/main/images/arrachage.mp4
 
-▶️ [Voir la vidéo d'arrachage](images/arrachage.mp4)
+▶️ [Ouvrir la vidéo d'arrachage](https://github.com/Zouhair-hub1/projet-plbd-25-ecc/raw/main/images/arrachage.mp4)
 
 ### 🌐 Interface web en action
 
-<p align="center">
-  <video src="images/interface%20web.mp4" width="600" controls></video>
-</p>
+https://github.com/Zouhair-hub1/projet-plbd-25-ecc/raw/main/images/interface%20web.mp4
 
-▶️ [Voir la vidéo de l'interface web](images/interface%20web.mp4)
+▶️ [Ouvrir la vidéo de l'interface web](https://github.com/Zouhair-hub1/projet-plbd-25-ecc/raw/main/images/interface%20web.mp4)
 
 ---
 
